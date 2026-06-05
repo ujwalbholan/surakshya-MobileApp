@@ -1,0 +1,87 @@
+library family_header_bar;
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:suraksha/core/constants/copy_constants.dart';
+import 'package:suraksha/router/app_routes.dart';
+import 'package:suraksha/theme/suraksha_colors.dart';
+import 'package:suraksha/theme/suraksha_spacing.dart';
+import 'package:suraksha/theme/suraksha_typography.dart';
+
+class FamilyHeaderBar extends StatelessWidget {
+  const FamilyHeaderBar({super.key, required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: S.md, vertical: S.sm),
+        child: Row(
+          children: [
+            Semantics(
+              label: 'Settings',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.settings_outlined, color: surakshaForeground),
+                onPressed: () => context.push(AppRoutes.profile),
+              ),
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: surakshaYellow,
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      size: 16,
+                      color: surakshaBlack,
+                    ),
+                  ),
+                  const SizedBox(width: S.sm),
+                  Text(
+                    CopyConstants.myFamily,
+                    style: SurakshaTypography.dashTitle,
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, color: surakshaMuted),
+                ],
+              ),
+            ),
+            Semantics(
+              label: 'Notifications',
+              button: true,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: surakshaForeground,
+                    ),
+                    onPressed: () {},
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: surakshaYellow,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
