@@ -1,0 +1,97 @@
+library app_router;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:suraksha/core/constants/app_constants.dart';
+import 'package:suraksha/features/auth/login_screen.dart';
+import 'package:suraksha/features/auth/signup_screen.dart';
+import 'package:suraksha/features/dashboard/dashboard_shell.dart';
+import 'package:suraksha/features/home/home_screen.dart';
+import 'package:suraksha/features/onboarding/onboarding_screen.dart';
+import 'package:suraksha/features/splash/splash_screen1.dart';
+import 'package:suraksha/features/splash/splash_screen2.dart';
+import 'package:suraksha/router/app_routes.dart';
+import 'package:suraksha/theme/suraksha_colors.dart';
+import 'package:suraksha/theme/suraksha_typography.dart';
+
+final _rootKey = GlobalKey<NavigatorState>();
+
+final appRouterProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    navigatorKey: _rootKey,
+    initialLocation: AppRoutes.splash,
+    debugLogDiagnostics: kDebugMode,
+    routes: [
+      GoRoute(
+        path: '/',
+        redirect: (context, state) => AppRoutes.splash,
+      ),
+      GoRoute(
+        path: AppRoutes.splash,
+        builder: (context, state) => const SplashScreen1(),
+      ),
+      GoRoute(
+        path: AppRoutes.splash2,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const SplashScreen2(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.home,
+        builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const LoginScreen(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.signup,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const SignupScreen(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.tracking,
+        redirect: (context, state) async {
+          final prefs = await SharedPreferences.getInstance();
+          final loggedIn = prefs.getBool(AppConstants.prefsLoggedIn) ?? false;
+          if (!loggedIn) return AppRoutes.login;
+          return null;
+        },
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const DashboardShell(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.profile,
+        redirect: (context, state) => AppRoutes.tracking,
+      ),
+    ],
+    errorBuilder: (context, state) => Scaffold(
+      backgroundColor: surakshaBlack,
+      body: Center(
+        child: Text(
+          '404 — ${state.error}',
+          style: SurakshaTypography.bodyLarge,
+        ),
+      ),
+    ),
+  );
+});
