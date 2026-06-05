@@ -1,0 +1,206 @@
+library dashboard_provider;
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suraksha/core/constants/app_constants.dart';
+import 'package:suraksha/models/contact_model.dart';
+import 'package:suraksha/models/location_model.dart';
+
+enum SosPhase { idle, counting, dispatching, resolved }
+
+enum DashboardTab { tracking, sos, profile }
+
+enum SafetyStatus { protected, sosActive }
+
+class DashboardStateData {
+  const DashboardStateData({
+    this.safetyStatus = SafetyStatus.protected,
+    this.locationSharingActive = true,
+    this.sosPhase = SosPhase.idle,
+    this.sosCountdownSeconds = AppConstants.sosCountdownSeconds,
+    this.batteryLevel = 87,
+    this.bandConnected = true,
+    this.contactsOnline = 3,
+    this.currentTab = DashboardTab.tracking,
+    this.sheetTabIndex = 0,
+    this.activeGroup = 'My family',
+    this.contacts = const [],
+    this.places = const [],
+    this.currentLocation = const LocationModel(
+      latitude: 27.7172,
+      longitude: 85.3240,
+      label: 'Kathmandu, Nepal',
+    ),
+    this.destination = const LocationModel(
+      latitude: 27.7100,
+      longitude: 85.3300,
+      label: 'Work',
+    ),
+    this.unreadNotifications = 0,
+  });
+
+  final SafetyStatus safetyStatus;
+  final bool locationSharingActive;
+  final SosPhase sosPhase;
+  final int sosCountdownSeconds;
+  final int batteryLevel;
+  final bool bandConnected;
+  final int contactsOnline;
+  final DashboardTab currentTab;
+  final int sheetTabIndex;
+  final String activeGroup;
+  final List<ContactModel> contacts;
+  final List<PlaceModel> places;
+  final LocationModel currentLocation;
+  final LocationModel destination;
+  final int unreadNotifications;
+
+  DashboardStateData copyWith({
+    SafetyStatus? safetyStatus,
+    bool? locationSharingActive,
+    SosPhase? sosPhase,
+    int? sosCountdownSeconds,
+    int? batteryLevel,
+    bool? bandConnected,
+    int? contactsOnline,
+    DashboardTab? currentTab,
+    int? sheetTabIndex,
+    String? activeGroup,
+    List<ContactModel>? contacts,
+    List<PlaceModel>? places,
+    LocationModel? currentLocation,
+    LocationModel? destination,
+    int? unreadNotifications,
+  }) =>
+      DashboardStateData(
+        safetyStatus: safetyStatus ?? this.safetyStatus,
+        locationSharingActive:
+            locationSharingActive ?? this.locationSharingActive,
+        sosPhase: sosPhase ?? this.sosPhase,
+        sosCountdownSeconds: sosCountdownSeconds ?? this.sosCountdownSeconds,
+        batteryLevel: batteryLevel ?? this.batteryLevel,
+        bandConnected: bandConnected ?? this.bandConnected,
+        contactsOnline: contactsOnline ?? this.contactsOnline,
+        currentTab: currentTab ?? this.currentTab,
+        sheetTabIndex: sheetTabIndex ?? this.sheetTabIndex,
+        activeGroup: activeGroup ?? this.activeGroup,
+        contacts: contacts ?? this.contacts,
+        places: places ?? this.places,
+        currentLocation: currentLocation ?? this.currentLocation,
+        destination: destination ?? this.destination,
+        unreadNotifications: unreadNotifications ?? this.unreadNotifications,
+      );
+}
+
+const kMockContacts = [
+  ContactModel(
+    id: 'me',
+    name: 'Priya Sharma',
+    phone: '+91 98765 43210',
+    role: 'Self',
+    avatarPath: 'assets/images/avatars/avatar_me.png',
+    isEmergency: true,
+    initials: 'PS',
+  ),
+  ContactModel(
+    id: 'father',
+    name: 'Raj Sharma',
+    phone: '+91 98765 43211',
+    role: 'Father',
+    avatarPath: 'assets/images/avatars/avatar_david.png',
+    isEmergency: true,
+    initials: 'R',
+  ),
+  ContactModel(
+    id: 'mother',
+    name: 'Sita Sharma',
+    phone: '+91 98765 43212',
+    role: 'Mother',
+    avatarPath: 'assets/images/avatars/avatar_sister.png',
+    isEmergency: true,
+    initials: 'S',
+  ),
+  ContactModel(
+    id: 'brother',
+    name: 'Arjun Sharma',
+    phone: '+91 98765 43213',
+    role: 'Brother',
+    avatarPath: 'assets/images/avatars/avatar_husband.png',
+    isEmergency: true,
+    initials: 'A',
+  ),
+];
+
+final kMockPlaces = <PlaceModel>[];
+
+class DashboardNotifier extends StateNotifier<DashboardStateData> {
+  DashboardNotifier()
+      : super(DashboardStateData(
+          contacts: kMockContacts,
+          places: kMockPlaces,
+        ));
+
+  void setTab(DashboardTab tab) => state = state.copyWith(currentTab: tab);
+
+  void setSheetTab(int index) => state = state.copyWith(sheetTabIndex: index);
+
+  void setActiveGroup(String group) =>
+      state = state.copyWith(activeGroup: group);
+
+  void toggleLocationSharing() => state = state.copyWith(
+        locationSharingActive: !state.locationSharingActive,
+      );
+
+  void setLocationSharingActive(bool active) =>
+      state = state.copyWith(locationSharingActive: active);
+
+  void resetSos() => state = state.copyWith(
+        sosPhase: SosPhase.idle,
+        sosCountdownSeconds: AppConstants.sosCountdownSeconds,
+        safetyStatus: SafetyStatus.protected,
+      );
+
+  void startSosCountdown() => state = state.copyWith(
+        sosPhase: SosPhase.counting,
+        sosCountdownSeconds: AppConstants.sosCountdownSeconds,
+        safetyStatus: SafetyStatus.sosActive,
+        currentTab: DashboardTab.sos,
+      );
+
+  void updateCountdown(int seconds) =>
+      state = state.copyWith(sosCountdownSeconds: seconds);
+
+  void startDispatching() => state = state.copyWith(
+        sosPhase: SosPhase.dispatching,
+        safetyStatus: SafetyStatus.sosActive,
+      );
+
+  void resolveSos() => state = state.copyWith(
+        sosPhase: SosPhase.resolved,
+        safetyStatus: SafetyStatus.protected,
+      );
+
+  void setBattery(int level) => state = state.copyWith(batteryLevel: level);
+
+  void setBandConnected(bool connected) =>
+      state = state.copyWith(bandConnected: connected);
+
+  void updateLocation(LocationModel location) =>
+      state = state.copyWith(currentLocation: location);
+}
+
+final dashboardProvider =
+    StateNotifierProvider<DashboardNotifier, DashboardStateData>(
+  (ref) => DashboardNotifier(),
+);
+
+final familyMembersProvider = Provider<List<ContactModel>>((ref) {
+  return ref
+      .watch(dashboardProvider)
+      .contacts
+      .where((c) => c.id != 'me')
+      .toList();
+});
+
+final emergencyContactsProvider = Provider<List<ContactModel>>((ref) {
+  return ref.watch(familyMembersProvider);
+});
