@@ -1,0 +1,91 @@
+library copy_constants;
+
+class CopyConstants {
+  CopyConstants._();
+
+  static const String appName = 'Suraksha';
+  static const String tagline = 'THE GUARDIAN ON YOUR WRIST';
+
+  static const String splashPercent = '%';
+
+  static const String onboardingSkip = 'Skip';
+  static const String onboardingPage1Title = 'The Guardian';
+  static const String onboardingPage1Body =
+      'Meet Suraksha — a precision safety band engineered for women who refuse to compromise.';
+  static const String onboardingPage2Title = 'Always Watching';
+  static const String onboardingPage2Body =
+      'Live GPS shared with your trusted circle. One tap away, 24/7.';
+  static const String onboardingPage3Title = 'Your Safety, Now';
+  static const String onboardingPage3Body =
+      'Set up your safety network and stay protected wherever you go.';
+  static const String onboardingGetStarted = 'Get Started';
+
+  static const String myFamily = 'My family';
+  static const String peopleTab = 'People';
+  static const String placesTab = 'Places';
+  static const String addPeople = 'Add People';
+  static const String tracking = 'Tracking';
+  static const String profile = 'Profile';
+  static const String sos = 'SOS';
+
+  static const String sosIdleTitle = 'Double-tap your Suraksha band';
+  static const String sosIdleBody =
+      'Quickly tap the SOS sensor on your wristband twice to begin the 5-second emergency countdown.';
+  static const String sosCountingTitle = 'Please, keep calm';
+  static const String sosCountingBody =
+      'In {seconds} seconds, your SOS and location will be sent to your emergency circle.';
+  static const String sosDispatchTitle = 'Sending SOS';
+  static const String sosDispatchBody =
+      'Contacting your emergency circle. Your location is being shared.';
+  static const String sosResolvedTitle = 'SOS cancelled';
+  static const String sosResolvedBody =
+      'Your emergency circle was not alerted. You are safe.';
+  static const String sosAwaitBandTitle = 'Double-tap your Suraksha band';
+  static const String sosAwaitBandBody =
+      'Quickly tap the SOS sensor on your wristband twice to begin the emergency countdown.';
+  static const String sosBackInactiveTitle = 'Going back is inactive';
+  static const String sosBackInactiveBody =
+      'Wait for the SOS signal to be sent, or simply cancel it to go back';
+  static const String swipeToCancelLabel = 'Swipe To Cancel';
+  static const String swipeToCancel = 'SWIPE TO CANCEL';
+  static const String swipeToCancelHint =
+      'Slide right on the yellow button to stop the alert';
+  static const String sosActivatedTitle = 'SOS Activated';
+  static const String sosActivatedBody =
+      'Contacting your emergency circle.\nYour location is being shared.';
+  static const String cancelSos = 'Cancel SOS';
+  static const String bandNotConnected = 'Band not connected';
+
+  static const String safetyStatus = 'SAFETY STATUS';
+  static const String protected = 'Protected';
+  static const String addPeopleSnackbar = 'Invite sent to your contact';
+  static const String locationSharingOn =
+      'Live location — updates every minute';
+  static const String locationSharingOff = 'Location sharing is paused';
+
+  static const String loginTitle = 'Sign in';
+  static const String loginSubtitle = 'Welcome back';
+  static const String signupTitle = 'Create account';
+  static const String signupSubtitle = 'Join Suraksha today';
+  static const String signupSuccess =
+      'Account created. Please sign in to continue.';
+  static const String familyMembersTitle = 'Family members';
+  static const String familyMembersSubtitle =
+      'Your live location on the map · family names, roles, and numbers below';
+  static const String familyRoleLabel = 'Role';
+  static const String sosPoliceDispatchTitle = 'Alerting police dashboard';
+  static const String sosPoliceDispatchBody =
+      'Your live location and family details are being sent to the police dashboard.';
+
+  static const String profileSignOut = 'Sign Out';
+  static const String profileSignOutConfirm = 'Sign out of Suraksha?';
+  static const String profileContacts = 'Contacts';
+  static const String profileKmShared = 'Km Shared';
+  static const String profileDaysActive = 'Days Active';
+
+  static const String twoPillarsTitle = 'Two pillars of safety';
+  static const String featureSos = 'One Tap SOS';
+  static const String featureTracking = 'Live GPS Tracking';
+
+  static const String osmAttribution = '© OpenStreetMap contributors';
+}
