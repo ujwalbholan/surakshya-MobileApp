@@ -59,8 +59,8 @@ if [[ -z "${GITHUB_TOKEN:-}" ]]; then
 fi
 
 TOTAL_COMMITS=$(git rev-list --count HEAD)
-if [[ "${TOTAL_COMMITS}" -lt 88 ]]; then
-  echo "Warning: expected at least 88 commits on main, found ${TOTAL_COMMITS}."
+if [[ "${TOTAL_COMMITS}" -lt 90 ]]; then
+  echo "Warning: expected at least 90 commits on main, found ${TOTAL_COMMITS}."
 fi
 
 git checkout main
