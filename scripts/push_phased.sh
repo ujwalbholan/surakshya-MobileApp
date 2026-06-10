@@ -111,8 +111,8 @@ push_phase() {
 
   if [[ "${phase}" -eq 1 ]]; then
     echo "Fetching remote before force-push (replaces existing mobile.dart history)..."
-    git fetch origin main 2>/dev/null || true
-    git push --force-with-lease -u "${PUSH_URL}" "${push_ref}"
+    git fetch origin main:refs/remotes/origin/main 2>/dev/null || true
+    git push --force-with-lease=main:origin/main -u "${PUSH_URL}" "${push_ref}"
   else
     git push -u "${PUSH_URL}" "${push_ref}"
   fi
