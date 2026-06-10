@@ -84,15 +84,25 @@ push_phase() {
   local phase="$1"
   local cumulative="${PHASE_COUNTS[$((phase - 1))]}"
   local target
-  target=$(resolve_target_commit "${cumulative}")
-
+  local push_ref
   local start end
-  if [[ "${phase}" -eq 1 ]]; then
-    start=1
+
+  if [[ "${phase}" -eq 10 ]]; then
+    target=$(git rev-parse HEAD)
+    cumulative=$(git rev-list --count HEAD)
+    start=$((PHASE_COUNTS[8] + 1))
+    end="${cumulative}"
+    push_ref="main"
   else
-    start=$((PHASE_COUNTS[phase - 2] + 1))
+    target=$(resolve_target_commit "${cumulative}")
+    push_ref="${target}:refs/heads/main"
+    if [[ "${phase}" -eq 1 ]]; then
+      start=1
+    else
+      start=$((PHASE_COUNTS[phase - 2] + 1))
+    fi
+    end="${cumulative}"
   fi
-  end="${cumulative}"
 
   echo "Phase ${phase}: pushing commits ${start}-${end} (${cumulative} cumulative)"
   echo "  Theme: ${PHASE_THEMES[$((phase - 1))]}"
@@ -102,9 +112,9 @@ push_phase() {
   if [[ "${phase}" -eq 1 ]]; then
     echo "Fetching remote before force-push (replaces existing mobile.dart history)..."
     git fetch origin main 2>/dev/null || true
-    git push --force-with-lease -u "${PUSH_URL}" "${target}:refs/heads/main"
+    git push --force-with-lease -u "${PUSH_URL}" "${push_ref}"
   else
-    git push -u "${PUSH_URL}" "${target}:refs/heads/main"
+    git push -u "${PUSH_URL}" "${push_ref}"
   fi
 
   echo
