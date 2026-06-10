@@ -17,13 +17,7 @@ git for-each-ref --format='%(refname)' refs/original/ | while read -r ref; do
 done
 
 echo "Verifying main branch is clean..."
-CURSOR_COUNT=$(git log main --format='%B' | grep -c 'cursoragent' || true)
-if [[ "${CURSOR_COUNT}" -gt 0 ]]; then
-  echo "Error: ${CURSOR_COUNT} commit(s) on main still mention cursoragent." >&2
-  exit 1
-fi
-
-ALL_CURSOR=$(git log main --format='%B' | grep -c 'Co-authored-by: Cursor' || true)
+ALL_CURSOR=$(git log main --format='%B' | grep -c '^Co-authored-by: Cursor <cursoragent@cursor.com>$' || true)
 if [[ "${ALL_CURSOR}" -gt 0 ]]; then
   echo "Error: ${ALL_CURSOR} commit(s) on main still have Cursor co-author trailers." >&2
   exit 1

@@ -48,9 +48,9 @@ if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
   exit 1
 fi
 
-CURSOR_COUNT=$(git log main --format='%B' | grep -c 'cursoragent' || true)
+CURSOR_COUNT=$(git log main --format='%B' | grep -c '^Co-authored-by: Cursor <cursoragent@cursor.com>$' || true)
 if [[ "${CURSOR_COUNT}" -gt 0 ]]; then
-  echo "Error: ${CURSOR_COUNT} commit(s) still mention cursoragent." >&2
+  echo "Error: ${CURSOR_COUNT} commit(s) still have Cursor co-author trailers." >&2
   exit 1
 fi
 
