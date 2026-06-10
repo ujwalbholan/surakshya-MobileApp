@@ -22,7 +22,14 @@ git filter-branch -f --env-filter "
   export GIT_AUTHOR_EMAIL=\"${AUTHOR_EMAIL}\"
   export GIT_COMMITTER_NAME=\"${AUTHOR_NAME}\"
   export GIT_COMMITTER_EMAIL=\"${AUTHOR_EMAIL}\"
-" -- --all
+" -- main
+
+FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --msg-filter \
+  'grep -v "^Co-authored-by: Cursor <cursoragent@cursor.com>$"' -- main
+
+git for-each-ref --format='%(refname)' refs/original/ 2>/dev/null | while read -r ref; do
+  git update-ref -d "${ref}" 2>/dev/null || true
+done
 
 echo
 echo "Verifying unique author/committer identities:"
@@ -41,5 +48,11 @@ if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
   exit 1
 fi
 
+CURSOR_COUNT=$(git log main --format='%B' | grep -c 'cursoragent' || true)
+if [[ "${CURSOR_COUNT}" -gt 0 ]]; then
+  echo "Error: ${CURSOR_COUNT} commit(s) still mention cursoragent." >&2
+  exit 1
+fi
+
 echo
-echo "Done. All $(git rev-list --count HEAD) commits now show ${EXPECTED}."
+echo "Done. All $(git rev-list --count HEAD) commits now show ${EXPECTED} (no cursoragent trailers)."
