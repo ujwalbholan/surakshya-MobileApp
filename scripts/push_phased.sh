@@ -16,7 +16,7 @@ PHASE_ARG="${2:-}"
 REPO="surakshya-MobileApp"
 
 # Cumulative commit counts per phase (oldest -> newest)
-PHASE_COUNTS=(9 18 27 36 45 54 63 72 80 90)
+PHASE_COUNTS=(9 18 27 36 45 54 63 72 80 91)
 PHASE_THEMES=(
   "Project bootstrap + theme foundation"
   "Theme completion + data models"
@@ -59,8 +59,8 @@ if [[ -z "${GITHUB_TOKEN:-}" ]]; then
 fi
 
 TOTAL_COMMITS=$(git rev-list --count HEAD)
-if [[ "${TOTAL_COMMITS}" -lt 90 ]]; then
-  echo "Warning: expected at least 90 commits on main, found ${TOTAL_COMMITS}."
+if [[ "${TOTAL_COMMITS}" -lt 91 ]]; then
+  echo "Warning: expected at least 91 commits on main, found ${TOTAL_COMMITS}."
 fi
 
 git checkout main
