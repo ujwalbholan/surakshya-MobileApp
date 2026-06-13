@@ -25,13 +25,13 @@ class CosmicBackgroundPainter extends CustomPainter {
     canvas.drawRect(
       Offset.zero & size,
       Paint()
-        ..shader = LinearGradient(
+        ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFF0A0508),
-            const Color(0xFF12080C),
-            const Color(0xFF050505),
+            Color(0xFF0A0508),
+            Color(0xFF12080C),
+            Color(0xFF050505),
           ],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
     );
@@ -45,14 +45,14 @@ class CosmicBackgroundPainter extends CustomPainter {
         Offset(centerX + driftX, centerY + driftY),
         coreRadius,
         Paint()
-          ..shader = RadialGradient(
+          ..shader = const RadialGradient(
             colors: [
-              const Color(0x55C0392B),
-              const Color(0x28E74C3C),
-              const Color(0x12C0392B),
+              Color(0x55C0392B),
+              Color(0x28E74C3C),
+              Color(0x12C0392B),
               Colors.transparent,
             ],
-            stops: const [0.0, 0.25, 0.5, 1.0],
+            stops: [0.0, 0.25, 0.5, 1.0],
           ).createShader(
             Rect.fromCircle(
               center: Offset(centerX + driftX, centerY + driftY),
@@ -72,10 +72,10 @@ class CosmicBackgroundPainter extends CustomPainter {
         ),
         blob2,
         Paint()
-          ..shader = RadialGradient(
+          ..shader = const RadialGradient(
             colors: [
-              const Color(0x20FF6B4A),
-              const Color(0x08C0392B),
+              Color(0x20FF6B4A),
+              Color(0x08C0392B),
               Colors.transparent,
             ],
           ).createShader(

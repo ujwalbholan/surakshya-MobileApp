@@ -156,7 +156,7 @@ class _SosNavButtonState extends State<_SosNavButton>
                   builder: (_, __) => Container(
                     width: 62 + _pulse.value * 16,
                     height: 62 + _pulse.value * 16,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: surakshaCrimsonRing,
                     ),

@@ -66,7 +66,7 @@ class _WristbandSosTargetState extends State<WristbandSosTarget>
                       ),
                       width: 2,
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: surakshaYellowGlow,
                         blurRadius: 24,

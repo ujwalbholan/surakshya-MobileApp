@@ -130,9 +130,9 @@ class _SosSwipeCancelBarState extends State<SosSwipeCancelBar>
                             : surakshaCrimson,
                         borderRadius: BorderRadius.circular(100),
                       ),
-                      child: Text(
+                      child: const Text(
                         CopyConstants.swipeToCancelLabel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: surakshaForeground,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

@@ -120,8 +120,8 @@ class _SosOvalCountdownState extends State<SosOvalCountdown>
         : 1.0;
 
     const pad = AppConstants.sosOvalPainterPad;
-    final painterW = AppConstants.sosOvalWidth + pad * 2;
-    final painterH = AppConstants.sosOvalHeight + pad * 2;
+    const painterW = AppConstants.sosOvalWidth + pad * 2;
+    const painterH = AppConstants.sosOvalHeight + pad * 2;
 
     return SizedBox(
       width: painterW,

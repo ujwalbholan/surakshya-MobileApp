@@ -30,9 +30,9 @@ class HeroSection extends ConsumerWidget {
       child: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: RadialGradient(
-                center: const Alignment(0, -0.2),
+                center: Alignment(0, -0.2),
                 radius: 1.2,
                 colors: [
                   surakshaCrimsonGlow,

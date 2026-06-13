@@ -13,7 +13,7 @@ class BrandStatementSection extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(
         height: context.screenHeight * 0.7,
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

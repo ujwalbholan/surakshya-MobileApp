@@ -68,7 +68,7 @@ class _SplashScreen2State extends ConsumerState<SplashScreen2>
 
   SplashPhases get _phases {
     if (_reducedMotion) {
-      return SplashPhases(_reducedMotionT);
+      return const SplashPhases(_reducedMotionT);
     }
     return _master.phases;
   }

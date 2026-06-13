@@ -33,9 +33,9 @@ class SosAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           onPressed: backEnabled ? onBack : null,
         ),
-        title: Text(
+        title: const Text(
           CopyConstants.sos,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
             color: surakshaForeground,

@@ -41,7 +41,7 @@ class SplashAmbientPainter extends CustomPainter {
           ..shader = LinearGradient(
             colors: [
               const Color(0x00E74C3C),
-              Color(0x18C0392B).withValues(alpha: 0.12 * intensity),
+              const Color(0x18C0392B).withValues(alpha: 0.12 * intensity),
               const Color(0x00C0392B),
             ],
           ).createShader(Rect.fromPoints(start, end))

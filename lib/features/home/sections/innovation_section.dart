@@ -46,7 +46,7 @@ class _InnovationSectionState extends State<InnovationSection> {
               const SizedBox(height: S.md),
               const CrimsonAccentLine(),
               const SizedBox(height: S.xl),
-              Wrap(
+              const Wrap(
                 spacing: S.md,
                 runSpacing: S.md,
                 alignment: WrapAlignment.center,

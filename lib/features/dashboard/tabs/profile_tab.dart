@@ -126,9 +126,9 @@ class ProfileTab extends ConsumerWidget {
             Center(
               child: TextButton(
                 onPressed: () => _confirmSignOut(context, ref),
-                child: Text(
+                child: const Text(
                   CopyConstants.profileSignOut,
-                  style: const TextStyle(color: surakshaCrimson),
+                  style: TextStyle(color: surakshaCrimson),
                 ),
               ),
             ),
@@ -155,7 +155,7 @@ class ProfileTab extends ConsumerWidget {
               style: SurakshaTypography.dashTitle,
             ),
             const SizedBox(height: S.sm),
-            Text(CopyConstants.profileSignOutConfirm),
+            const Text(CopyConstants.profileSignOutConfirm),
             const SizedBox(height: S.lg),
             Row(
               children: [
