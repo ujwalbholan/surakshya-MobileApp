@@ -205,9 +205,13 @@ class _OriginButtonState extends State<OriginButton>
                 _setOrigin(event.localPosition.dx, event.localPosition.dy);
               }
             },
-            onExit: (_) => _setHovered(false),
+            onExit: (_) {
+              _setHovered(false);
+              _setPressed(false);
+            },
             child: Listener(
               onPointerDown: (event) {
+                if (event.buttons != 1) return;
                 _setOrigin(event.localPosition.dx, event.localPosition.dy);
                 _setPressed(true);
               },
@@ -336,5 +340,5 @@ double _getCoverDiameter(double width, double height, double x, double y) {
     math.sqrt(x * x + (height - y) * (height - y)),
     math.sqrt((width - x) * (width - x) + (height - y) * (height - y)),
   ];
-  return distances.reduce(math.max) * 2;
+  return math.max(distances.reduce(math.max) * 2, 0).ceilToDouble();
 }
