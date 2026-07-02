@@ -9,6 +9,7 @@ import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
+import 'package:suraksha/widgets/origin_button.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -160,11 +161,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     const SizedBox(height: S.xl),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submit,
-                        child: _isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text('Create Account'),
+                      child: OriginButton(
+                        onPressed: _submit,
+                        loading: _isLoading,
+                        child: const Text('Create Account'),
                       ),
                     ),
                     TextButton(
