@@ -9,6 +9,7 @@ import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
+import 'package:suraksha/widgets/origin_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -143,15 +144,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   const SizedBox(height: S.xl),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _submit,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Sign In'),
+                    child: OriginButton(
+                      onPressed: _submit,
+                      loading: _isLoading,
+                      child: const Text('Sign In'),
                     ),
                   ),
                   const SizedBox(height: S.lg),
