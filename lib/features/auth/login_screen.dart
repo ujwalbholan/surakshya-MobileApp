@@ -10,7 +10,7 @@ import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 import 'package:suraksha/widgets/origin_button.dart';
-import 'package:suraksha/widgets/suraksha_input.dart';
+import 'package:suraksha/widgets/suraksha_email_input.dart';
 import 'package:suraksha/widgets/suraksha_label.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -22,8 +22,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen>
     with SingleTickerProviderStateMixin {
-  final _emailController = TextEditingController();
+  final _emailLocalController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _emailDomain = EmailDomains.defaultSelected;
   bool _obscurePassword = true;
   bool _isLoading = false;
   late final AnimationController _entryController;
@@ -39,7 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _emailLocalController.dispose();
     _passwordController.dispose();
     _entryController.dispose();
     super.dispose();
@@ -47,8 +48,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Future<void> _submit() async {
     setState(() => _isLoading = true);
+    final email =
+        '${_emailLocalController.text.trim()}@$_emailDomain';
     await ref.read(authProvider.notifier).login(
-          _emailController.text.trim(),
+          email,
           _passwordController.text,
         );
     if (mounted) {
@@ -120,11 +123,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   const SizedBox(height: S.xl2),
                   const SurakshaLabel(text: 'Email'),
                   const SizedBox(height: S.sm),
-                  SurakshaInput(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    placeholder: 'you@example.com',
+                  SurakshaEmailInput(
+                    localPartController: _emailLocalController,
+                    initialDomain: _emailDomain,
+                    placeholder: 'username',
                     textInputAction: TextInputAction.next,
+                    onDomainChanged: (domain) =>
+                        setState(() => _emailDomain = domain),
                   ),
                   const SizedBox(height: S.lg),
                   TextField(
