@@ -10,6 +10,8 @@ import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 import 'package:suraksha/widgets/origin_button.dart';
+import 'package:suraksha/widgets/suraksha_input.dart';
+import 'package:suraksha/widgets/suraksha_label.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -116,11 +118,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   Text(CopyConstants.loginSubtitle,
                       style: SurakshaTypography.monoLabel),
                   const SizedBox(height: S.xl2),
-                  TextField(
+                  const SurakshaLabel(text: 'Email'),
+                  const SizedBox(height: S.sm),
+                  SurakshaInput(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(color: surakshaAuthText),
-                    decoration: const InputDecoration(labelText: 'EMAIL'),
+                    placeholder: 'you@example.com',
+                    textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: S.lg),
                   TextField(
