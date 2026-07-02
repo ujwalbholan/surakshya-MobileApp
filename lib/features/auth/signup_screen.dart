@@ -10,7 +10,7 @@ import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 import 'package:suraksha/widgets/origin_button.dart';
-import 'package:suraksha/widgets/suraksha_input.dart';
+import 'package:suraksha/widgets/suraksha_email_input.dart';
 import 'package:suraksha/widgets/suraksha_label.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -22,8 +22,9 @@ class SignupScreen extends ConsumerStatefulWidget {
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _emailLocalController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _emailDomain = EmailDomains.defaultSelected;
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -32,7 +33,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
+    _emailLocalController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -40,11 +41,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _submit() async {
     final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
+    final emailLocal = _emailLocalController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    if (name.isEmpty || email.isEmpty) {
+    if (name.isEmpty || emailLocal.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your name and email')),
       );
@@ -73,6 +74,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
 
     setState(() => _isLoading = true);
+    final email = '$emailLocal@$_emailDomain';
     final ok = await ref.read(authProvider.notifier).registerAccount(
           name: name,
           email: email,
@@ -117,11 +119,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     const SizedBox(height: S.lg),
                     const SurakshaLabel(text: 'Email'),
                     const SizedBox(height: S.sm),
-                    SurakshaInput(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      placeholder: 'you@example.com',
+                    SurakshaEmailInput(
+                      localPartController: _emailLocalController,
+                      initialDomain: _emailDomain,
+                      placeholder: 'username',
                       textInputAction: TextInputAction.next,
+                      onDomainChanged: (domain) =>
+                          setState(() => _emailDomain = domain),
                     ),
                     const SizedBox(height: S.lg),
                     TextField(
