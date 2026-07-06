@@ -140,7 +140,13 @@ class _SurakshaInputState extends State<SurakshaInput> {
             onSubmitted: widget.onSubmitted,
             cursorColor: surakshaAuthFocus,
             style: _textStyle,
-            decoration: InputDecoration.collapsed(
+            decoration: InputDecoration(
+              isCollapsed: true,
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
               hintText: widget.placeholder,
               hintStyle: _hintStyle,
             ),

@@ -11,7 +11,6 @@ import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 import 'package:suraksha/widgets/origin_button.dart';
 import 'package:suraksha/widgets/suraksha_email_input.dart';
-import 'package:suraksha/widgets/suraksha_label.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -117,12 +116,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       decoration: const InputDecoration(labelText: 'NAME'),
                     ),
                     const SizedBox(height: S.lg),
-                    const SurakshaLabel(text: 'Email'),
-                    const SizedBox(height: S.sm),
                     SurakshaEmailInput(
                       localPartController: _emailLocalController,
                       initialDomain: _emailDomain,
-                      placeholder: 'username',
                       textInputAction: TextInputAction.next,
                       onDomainChanged: (domain) =>
                           setState(() => _emailDomain = domain),

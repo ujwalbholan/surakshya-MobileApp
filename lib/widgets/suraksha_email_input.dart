@@ -39,7 +39,7 @@ class SurakshaEmailInput extends StatefulWidget {
     super.key,
     required this.localPartController,
     this.initialDomain = EmailDomains.defaultSelected,
-    this.placeholder = 'username',
+    this.placeholder = 'EMAIL',
     this.textInputAction,
     this.onSubmitted,
     this.onEmailChanged,
@@ -64,20 +64,6 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
   static const _minHeight = 36.0;
   static const _animationDuration = Duration(milliseconds: 150);
   static const _menuWidth = 120.0;
-
-  static final TextStyle _textStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    height: 1.43,
-    color: surakshaAuthText,
-  );
-
-  static final TextStyle _hintStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    height: 1.43,
-    color: surakshaMuted.withValues(alpha: 0.7),
-  );
 
   static final TextStyle _suffixStyle = GoogleFonts.inter(
     fontSize: 14,
@@ -289,10 +275,16 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
                     onSubmitted: widget.onSubmitted,
                     onChanged: (_) => _notifyEmailChanged(),
                     cursorColor: surakshaAuthFocus,
-                    style: _textStyle,
-                    decoration: InputDecoration.collapsed(
-                      hintText: widget.placeholder,
-                      hintStyle: _hintStyle,
+                    style: const TextStyle(color: surakshaAuthText),
+                    decoration: InputDecoration(
+                      labelText: widget.placeholder,
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
                     ),
                   ),
                 ),
