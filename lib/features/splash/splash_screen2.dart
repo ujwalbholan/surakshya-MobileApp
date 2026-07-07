@@ -57,7 +57,12 @@ class _SplashScreen2State extends ConsumerState<SplashScreen2>
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     final loggedIn = prefs.getBool(AppConstants.prefsLoggedIn) ?? false;
-    context.go(loggedIn ? AppRoutes.tracking : AppRoutes.login);
+    if (!loggedIn) {
+      context.go(AppRoutes.login);
+      return;
+    }
+    final role = prefs.getString(AppConstants.prefsUserRole) ?? 'USER';
+    context.go(AppRoutes.homeRouteForRole(role));
   }
 
   @override

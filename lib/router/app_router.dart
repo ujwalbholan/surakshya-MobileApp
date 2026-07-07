@@ -12,6 +12,7 @@ import 'package:suraksha/features/dashboard/dashboard_shell.dart';
 import 'package:suraksha/features/guardians/guardians_screen.dart';
 import 'package:suraksha/features/home/home_screen.dart';
 import 'package:suraksha/features/onboarding/onboarding_screen.dart';
+import 'package:suraksha/features/parent/parent_dashboard_screen.dart';
 import 'package:suraksha/features/splash/splash_screen1.dart';
 import 'package:suraksha/features/splash/splash_screen2.dart';
 import 'package:suraksha/router/app_routes.dart';
@@ -67,11 +68,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.parent,
+        redirect: (context, state) async {
+          final prefs = await SharedPreferences.getInstance();
+          final loggedIn = prefs.getBool(AppConstants.prefsLoggedIn) ?? false;
+          if (!loggedIn) return AppRoutes.login;
+          final role = prefs.getString(AppConstants.prefsUserRole) ?? 'USER';
+          if (role == 'USER') return AppRoutes.tracking;
+          if (role != 'GUARDIAN') return AppRoutes.login;
+          return null;
+        },
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const ParentDashboardScreen(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.tracking,
         redirect: (context, state) async {
           final prefs = await SharedPreferences.getInstance();
           final loggedIn = prefs.getBool(AppConstants.prefsLoggedIn) ?? false;
           if (!loggedIn) return AppRoutes.login;
+          final role = prefs.getString(AppConstants.prefsUserRole) ?? 'USER';
+          if (role == 'GUARDIAN') return AppRoutes.parent;
           return null;
         },
         pageBuilder: (context, state) => CustomTransitionPage<void>(

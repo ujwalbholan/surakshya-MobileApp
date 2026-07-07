@@ -74,10 +74,11 @@ class AuthNotifier extends StateNotifier<AuthData> {
     await Future<void>.delayed(SurakshaAnimations.authLoad);
     final session = await _api.login(email, password);
 
-    if (session.user.role != 'USER') {
+    const mobileRoles = {'USER', 'GUARDIAN'};
+    if (!mobileRoles.contains(session.user.role)) {
       await _api.clearSession();
       throw SurakshyaApiException(
-        'This app is for citizen accounts. Guardians should use the web portal.',
+        'This account requires the web portal. Sign in at the Suraksha website.',
       );
     }
 

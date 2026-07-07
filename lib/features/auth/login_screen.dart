@@ -69,7 +69,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             email,
             _passwordController.text,
           );
-      if (mounted) context.go(AppRoutes.tracking);
+      if (mounted) {
+        final role = ref.read(authProvider).user?.role ?? 'USER';
+        context.go(AppRoutes.homeRouteForRole(role));
+      }
     } on SurakshyaApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
