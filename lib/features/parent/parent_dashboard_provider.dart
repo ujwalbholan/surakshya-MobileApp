@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suraksha/models/parent_models.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 
+enum ParentTab { home, profile }
+
 class ParentDashboardState {
   const ParentDashboardState({
     this.wards = const [],
@@ -14,6 +16,7 @@ class ParentDashboardState {
     this.activeSos,
     this.loading = false,
     this.error,
+    this.currentTab = ParentTab.home,
   });
 
   final List<LinkedWard> wards;
@@ -22,6 +25,7 @@ class ParentDashboardState {
   final WardSosEvent? activeSos;
   final bool loading;
   final String? error;
+  final ParentTab currentTab;
 
   LinkedWard? get selectedWard {
     final id = selectedWardId;
@@ -39,6 +43,7 @@ class ParentDashboardState {
     WardSosEvent? activeSos,
     bool? loading,
     String? error,
+    ParentTab? currentTab,
     bool clearError = false,
     bool clearSelectedWard = false,
     bool clearActiveSos = false,
@@ -53,6 +58,7 @@ class ParentDashboardState {
             clearActiveSos ? null : (activeSos ?? this.activeSos),
         loading: loading ?? this.loading,
         error: clearError ? null : (error ?? this.error),
+        currentTab: currentTab ?? this.currentTab,
       );
 }
 
@@ -96,6 +102,7 @@ class ParentDashboardNotifier extends StateNotifier<ParentDashboardState> {
         selectedWardId: selectedId,
         pendingRequests: pendingRequests,
         activeSos: selectedId == previousSelectedId ? state.activeSos : null,
+        currentTab: state.currentTab,
       );
 
       if (selectedId != null) {
@@ -110,6 +117,8 @@ class ParentDashboardNotifier extends StateNotifier<ParentDashboardState> {
       );
     }
   }
+
+  void setTab(ParentTab tab) => state = state.copyWith(currentTab: tab);
 
   void selectWard(String wardId) {
     if (state.selectedWardId == wardId) return;
