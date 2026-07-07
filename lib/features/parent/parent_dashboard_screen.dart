@@ -25,24 +25,6 @@ class ParentDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
-  ParentDashboardNotifier? _notifier;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _notifier = ref.read(parentDashboardProvider.notifier);
-      _notifier!.refresh();
-      _notifier!.startSosPolling();
-    });
-  }
-
-  @override
-  void dispose() {
-    _notifier?.stopSosPolling();
-    super.dispose();
-  }
-
   Future<void> _signOut() async {
     final confirmed = await showDialog<bool>(
       context: context,

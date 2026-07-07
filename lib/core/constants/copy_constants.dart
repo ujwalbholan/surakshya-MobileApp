@@ -25,6 +25,7 @@ class CopyConstants {
   static const String placesTab = 'Places';
   static const String addPeople = 'Add People';
   static const String tracking = 'Tracking';
+  static const String home = 'Home';
   static const String profile = 'Profile';
   static const String sos = 'SOS';
 

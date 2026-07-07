@@ -12,7 +12,7 @@ import 'package:suraksha/features/dashboard/dashboard_shell.dart';
 import 'package:suraksha/features/guardians/guardians_screen.dart';
 import 'package:suraksha/features/home/home_screen.dart';
 import 'package:suraksha/features/onboarding/onboarding_screen.dart';
-import 'package:suraksha/features/parent/parent_dashboard_screen.dart';
+import 'package:suraksha/features/parent/parent_shell.dart';
 import 'package:suraksha/features/splash/splash_screen1.dart';
 import 'package:suraksha/features/splash/splash_screen2.dart';
 import 'package:suraksha/router/app_routes.dart';
@@ -79,7 +79,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return null;
         },
         pageBuilder: (context, state) => CustomTransitionPage<void>(
-          child: const ParentDashboardScreen(),
+          child: const ParentShell(),
           transitionsBuilder: (context, animation, secondary, child) =>
               FadeTransition(opacity: animation, child: child),
         ),
