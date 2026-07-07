@@ -98,4 +98,19 @@ class CopyConstants {
   static const String featureTracking = 'Live GPS Tracking';
 
   static const String osmAttribution = '© OpenStreetMap contributors';
+
+  static const String parentDashboardTitle = 'Parent';
+  static const String parentSelectChild = 'Your children';
+  static const String parentNoChildren =
+      'No child linked yet. Accept an invite from your child to get started.';
+  static const String parentChildDetails = 'Child details';
+  static const String parentSosSafe = 'No active SOS';
+  static const String parentSosActive = 'SOS active';
+  static const String parentOpenInMaps = 'Open in Maps';
+  static const String parentPendingLink =
+      'wants to link with you as their guardian';
+  static const String parentAcceptLink = 'Accept';
+  static const String parentPhoneVerifyHint =
+      'Complete phone verification from your invite email before accepting.';
+  static const String parentLocationUnavailable = 'Location not available yet';
 }

@@ -106,6 +106,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final prefs = await SharedPreferences.getInstance();
           final loggedIn = prefs.getBool(AppConstants.prefsLoggedIn) ?? false;
           if (!loggedIn) return AppRoutes.login;
+          final role = prefs.getString(AppConstants.prefsUserRole) ?? 'USER';
+          if (role == 'GUARDIAN') return AppRoutes.parent;
           return null;
         },
         pageBuilder: (context, state) => CustomTransitionPage<void>(
