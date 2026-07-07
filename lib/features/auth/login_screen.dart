@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
+import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
@@ -47,9 +48,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Future<void> _submit() async {
+    final email = buildEmailAddress(
+      _emailLocalController.text,
+      _emailDomain,
+    );
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Enter a valid email. Use only the username — @gmail.com is added for you.',
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    final email =
-        '${_emailLocalController.text.trim()}@$_emailDomain';
     try {
       await ref.read(authProvider.notifier).login(
             email,

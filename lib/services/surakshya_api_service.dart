@@ -51,7 +51,7 @@ class SurakshyaApiService {
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw SurakshyaApiException(
-        _messageFrom(data) ?? 'Login failed',
+        _errorMessage(response, data, fallback: 'Login failed'),
         statusCode: response.statusCode,
       );
     }
@@ -92,7 +92,7 @@ class SurakshyaApiService {
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw SurakshyaApiException(
-        _messageFrom(data) ?? 'Registration failed',
+        _errorMessage(response, data, fallback: 'Registration failed'),
         statusCode: response.statusCode,
       );
     }
@@ -221,11 +221,35 @@ class SurakshyaApiService {
 
   String? _messageFrom(Map<String, dynamic> data) {
     final message = data['message'];
-    if (message is String && message.isNotEmpty) return message;
+    if (message is String && message.isNotEmpty) {
+      return _humanizeServerMessage(message);
+    }
     if (message is List && message.isNotEmpty) {
-      return message.first.toString();
+      return _humanizeServerMessage(message.first.toString());
     }
     return null;
+  }
+
+  String _errorMessage(
+    http.Response response,
+    Map<String, dynamic> data, {
+    required String fallback,
+  }) {
+    if (response.statusCode == 429) {
+      return 'Too many attempts. Please wait about a minute, then try again.';
+    }
+    return _messageFrom(data) ?? fallback;
+  }
+
+  String _humanizeServerMessage(String message) {
+    if (message.contains('ThrottlerException') ||
+        message.toLowerCase().contains('too many requests')) {
+      return 'Too many attempts. Please wait about a minute, then try again.';
+    }
+    if (message == 'email must be an email') {
+      return 'That email address looks invalid. Enter only the username (e.g. bikram1), not @gmail.com.';
+    }
+    return message;
   }
 
   void dispose() => _client.close();

@@ -14,9 +14,9 @@ class EmailDomains {
   static const String defaultSelected = 'gmail.com';
 
   static const List<EmailSuffixOption> suffixes = [
-    EmailSuffixOption(label: '.com', domain: 'gmail.com'),
-    EmailSuffixOption(label: '.org', domain: 'protonmail.org'),
-    EmailSuffixOption(label: '.net', domain: 'live.net'),
+    EmailSuffixOption(label: '@gmail.com', domain: 'gmail.com'),
+    EmailSuffixOption(label: '@protonmail.org', domain: 'protonmail.org'),
+    EmailSuffixOption(label: '@live.net', domain: 'live.net'),
   ];
 
   static EmailSuffixOption optionForDomain(String domain) => suffixes.firstWhere(
