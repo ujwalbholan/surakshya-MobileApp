@@ -7,6 +7,7 @@ import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
 import 'package:suraksha/features/guardians/guardian_provider.dart';
+import 'package:suraksha/models/user_model.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/services/ble_service.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -25,7 +26,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(guardianLinkingProvider.notifier).refresh();
+      if (ref.read(authProvider).isLoggedIn) {
+        ref.read(guardianLinkingProvider.notifier).refresh();
+      }
     });
   }
 
@@ -37,7 +40,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     final user = auth.user;
     final bottomPad = S.bottomNavHeight + MediaQuery.paddingOf(context).bottom;
 
-    return ColoredBox(
+    return Material(
       color: dashboardBg,
       child: SafeArea(
         bottom: false,
@@ -51,7 +54,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                     radius: 50,
                     backgroundColor: surakshaCrimson,
                     child: Text(
-                      user?.name.substring(0, 2).toUpperCase() ?? 'PS',
+                      _userInitials(user),
                       style: SurakshaTypography.dashGreeting,
                     ),
                   ),
@@ -69,93 +72,130 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
             ),
             const SizedBox(height: S.xl),
             _Section(CopyConstants.familyMembersTitle, [
-              ListTile(
-                title: Text(CopyConstants.manageGuardians),
-                subtitle: Text(
-                  guardians.guardians.isEmpty
-                      ? CopyConstants.noLinkedGuardians
-                      : '${guardians.guardians.length} linked · ${guardians.pendingRequests.length} pending',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRoutes.guardians),
-              ),
-              if (guardians.guardians.isEmpty && !guardians.loading)
-                Padding(
-                  padding: const EdgeInsets.only(left: S.md, bottom: S.sm),
-                  child: Text(
-                    CopyConstants.noLinkedGuardians,
-                    style: SurakshaTypography.monoLabel,
-                  ),
-                )
-              else
-                ...guardians.guardians.map(
-                  (g) => ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: surakshaCrimson.withValues(alpha: 0.15),
-                      child: Text(
-                        g.initials,
-                        style: const TextStyle(color: surakshaCrimson),
+              Material(
+                color: dashboardCard,
+                borderRadius: BorderRadius.circular(S.radiusLg),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text(CopyConstants.manageGuardians),
+                      subtitle: Text(
+                        guardians.guardians.isEmpty
+                            ? CopyConstants.noLinkedGuardians
+                            : '${guardians.guardians.length} linked · ${guardians.pendingRequests.length} pending',
                       ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.guardians),
                     ),
-                    title: Text(g.fullName),
-                    subtitle: Text('Guardian · ${g.phone}'),
-                  ),
+                    if (guardians.guardians.isEmpty && !guardians.loading)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          S.md,
+                          0,
+                          S.md,
+                          S.sm,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            CopyConstants.noLinkedGuardians,
+                            style: SurakshaTypography.monoLabel,
+                          ),
+                        ),
+                      )
+                    else
+                      ...guardians.guardians.map(
+                        (g) => ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor:
+                                surakshaCrimson.withValues(alpha: 0.15),
+                            child: Text(
+                              g.initials,
+                              style: const TextStyle(color: surakshaCrimson),
+                            ),
+                          ),
+                          title: Text(g.fullName),
+                          subtitle: Text('Guardian · ${g.phone}'),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
             ]),
             _Section('Location', [
-              SwitchListTile(
-                title: const Text('Share my location'),
-                subtitle: const Text(
-                  'Used for SOS alerts to the police dashboard',
+              _settingsCard(
+                SwitchListTile(
+                  title: const Text('Share my location'),
+                  subtitle: const Text(
+                    'Used for SOS alerts to the police dashboard',
+                  ),
+                  value: dash.locationSharingActive,
+                  activeThumbColor: surakshaCrimson,
+                  onChanged: (_) => ref
+                      .read(dashboardProvider.notifier)
+                      .toggleLocationSharing(),
                 ),
-                value: dash.locationSharingActive,
-                activeThumbColor: surakshaCrimson,
-                onChanged: (_) => ref
-                    .read(dashboardProvider.notifier)
-                    .toggleLocationSharing(),
               ),
             ]),
             _Section('Device', [
-              ListTile(
-                title: const Text('Pair Suraksha Band'),
-                trailing: const Icon(Icons.bluetooth),
-                onTap: () async {
-                  await ref.read(bleServiceProvider).startScan();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('BLE scan started')),
-                    );
-                  }
-                },
-              ),
-              ListTile(
-                title: const Text('Band status'),
-                trailing: Text(
-                  dash.bandConnected ? 'Connected' : 'Disconnected',
-                  style: TextStyle(
-                    color:
-                        dash.bandConnected ? surakshaSuccess : surakshaMuted,
-                  ),
+              _settingsCard(
+                Column(
+                  children: [
+                    ListTile(
+                      title: const Text('Pair Suraksha Band'),
+                      trailing: const Icon(Icons.bluetooth),
+                      onTap: () async {
+                        await ref.read(bleServiceProvider).startScan();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('BLE scan started')),
+                          );
+                        }
+                      },
+                    ),
+                    const Divider(height: 1, color: dashboardBorder),
+                    ListTile(
+                      title: const Text('Band status'),
+                      trailing: Text(
+                        dash.bandConnected ? 'Connected' : 'Disconnected',
+                        style: TextStyle(
+                          color: dash.bandConnected
+                              ? surakshaSuccess
+                              : surakshaMuted,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ]),
             _Section('Notifications', [
-              SwitchListTile(
-                title: const Text('SOS alerts'),
-                value: true,
-                activeThumbColor: surakshaCrimson,
-                onChanged: (_) {},
+              _settingsCard(
+                SwitchListTile(
+                  title: const Text('SOS alerts'),
+                  value: true,
+                  activeThumbColor: surakshaCrimson,
+                  onChanged: (_) {},
+                ),
               ),
             ]),
             _Section('Account', [
-              ListTile(
-                title: const Text('Marketing site'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRoutes.home),
-              ),
-              ListTile(
-                title: const Text('Support'),
-                onTap: () {},
+              _settingsCard(
+                Column(
+                  children: [
+                    ListTile(
+                      title: const Text('Marketing site'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.home),
+                    ),
+                    const Divider(height: 1, color: dashboardBorder),
+                    ListTile(
+                      title: const Text('Support'),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
               ),
             ]),
             Center(
@@ -222,6 +262,20 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     }
   }
 }
+
+String _userInitials(UserModel? user) {
+  final name = user?.name.trim() ?? '';
+  if (name.isEmpty) return 'PS';
+  if (name.length == 1) return name.toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+Widget _settingsCard(Widget child) => Material(
+      color: dashboardCard,
+      borderRadius: BorderRadius.circular(S.radiusLg),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
 
 class _Section extends StatelessWidget {
   const _Section(this.title, this.children);

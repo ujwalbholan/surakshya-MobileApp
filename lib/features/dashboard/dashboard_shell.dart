@@ -2,6 +2,7 @@ library dashboard_shell;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
 import 'package:suraksha/features/dashboard/live_location_tracker.dart';
@@ -25,7 +26,9 @@ class _DashboardShellState extends ConsumerState<DashboardShell>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(guardianLinkingProvider.notifier).refresh();
+      if (ref.read(authProvider).isLoggedIn) {
+        ref.read(guardianLinkingProvider.notifier).refresh();
+      }
     });
   }
 

@@ -178,18 +178,33 @@ class _GuardiansScreenState extends ConsumerState<GuardiansScreen> {
                 style: SurakshaTypography.monoLabel,
               )
             else
-              ...state.guardians.map(
-                (guardian) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: surakshaCrimson.withValues(alpha: 0.2),
-                    child: Text(
-                      guardian.initials,
-                      style: const TextStyle(color: surakshaCrimson),
-                    ),
-                  ),
-                  title: Text(guardian.fullName),
-                  subtitle: Text('${guardian.role} · ${guardian.phone}'),
+              Material(
+                color: dashboardCard,
+                borderRadius: BorderRadius.circular(S.radiusLg),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    for (var i = 0; i < state.guardians.length; i++) ...[
+                      if (i > 0) const Divider(height: 1, color: dashboardBorder),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: S.md,
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              surakshaCrimson.withValues(alpha: 0.2),
+                          child: Text(
+                            state.guardians[i].initials,
+                            style: const TextStyle(color: surakshaCrimson),
+                          ),
+                        ),
+                        title: Text(state.guardians[i].fullName),
+                        subtitle: Text(
+                          '${state.guardians[i].role} · ${state.guardians[i].phone}',
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
           ],

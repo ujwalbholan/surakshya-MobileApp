@@ -44,15 +44,18 @@ class GroupSelectorSheet extends StatelessWidget {
             Text('Select circle', style: SurakshaTypography.dashTitle),
             const SizedBox(height: S.md),
             ..._mockGroups.map(
-              (g) => ListTile(
-                title: Text(g),
-                trailing: g == selected
-                    ? const Icon(Icons.check, color: surakshaCrimson)
-                    : null,
-                onTap: () {
-                  onSelected(g);
-                  Navigator.pop(context);
-                },
+              (g) => Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  title: Text(g),
+                  trailing: g == selected
+                      ? const Icon(Icons.check, color: surakshaCrimson)
+                      : null,
+                  onTap: () {
+                    onSelected(g);
+                    Navigator.pop(context);
+                  },
+                ),
               ),
             ),
           ],

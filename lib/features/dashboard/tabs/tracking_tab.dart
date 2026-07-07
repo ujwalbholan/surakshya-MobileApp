@@ -29,7 +29,7 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
     final family = ref.watch(familyMembersProvider);
     final bottomPad = S.bottomNavHeight + MediaQuery.paddingOf(context).bottom;
 
-    return ColoredBox(
+    return Material(
       color: dashboardBg,
       child: SafeArea(
         bottom: false,
