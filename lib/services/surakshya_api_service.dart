@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:suraksha/core/constants/app_constants.dart';
 import 'package:suraksha/models/guardian_models.dart';
+import 'package:suraksha/models/parent_models.dart';
 import 'package:suraksha/models/user_model.dart';
 import 'package:suraksha/services/token_storage.dart';
 
@@ -206,6 +207,85 @@ class SurakshyaApiService {
       );
     }
     return data['message'] as String? ?? 'Request rejected';
+  }
+
+  Future<List<LinkedWard>> fetchMyWards({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final headers = await _authHeaders();
+    final response = await _client.get(
+      Uri.parse('$_base/guardian/me?page=$page&limit=$limit'),
+      headers: headers,
+    );
+    if (response.statusCode == 404) {
+      return [];
+    }
+    final data = _decode(response);
+    if (response.statusCode != 200) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to load wards',
+        statusCode: response.statusCode,
+      );
+    }
+    final list = data['wards'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => LinkedWard.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<GuardianPendingRequest>> fetchGuardianPendingRequests() async {
+    final headers = await _authHeaders();
+    final response = await _client.get(
+      Uri.parse('$_base/guardian/requests'),
+      headers: headers,
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to load requests',
+        statusCode: response.statusCode,
+      );
+    }
+    final list = data['requests'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => GuardianPendingRequest.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<String> acceptGuardianRequest(String requestId) async {
+    final headers = await _authHeaders();
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/requests/$requestId/accept'),
+      headers: headers,
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to accept request',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ?? 'Request accepted';
+  }
+
+  Future<List<WardSosEvent>> fetchWardSos(String wardId) async {
+    final headers = await _authHeaders();
+    final response = await _client.get(
+      Uri.parse('$_base/guardian/wards/$wardId/sos'),
+      headers: headers,
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to load SOS events',
+        statusCode: response.statusCode,
+      );
+    }
+    final list = data['data'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => WardSosEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> clearSession() => _tokenStorage.clearTokens();
