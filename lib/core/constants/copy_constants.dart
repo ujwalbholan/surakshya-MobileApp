@@ -73,7 +73,7 @@ class CopyConstants {
   static const String guardiansTitle = 'Guardians';
   static const String inviteGuardianTitle = 'Invite a guardian';
   static const String inviteGuardianSubtitle =
-      'They will receive login credentials and setup instructions by email and SMS.';
+      'They will receive login credentials by email to sign in and accept the link.';
   static const String pendingRequestsTitle = 'Pending requests';
   static const String linkedGuardiansTitle = 'Linked guardians';
   static const String noPendingRequests = 'No pending link requests.';
@@ -110,7 +110,5 @@ class CopyConstants {
   static const String parentPendingLink =
       'wants to link with you as their guardian';
   static const String parentAcceptLink = 'Accept';
-  static const String parentPhoneVerifyHint =
-      'Complete phone verification from your invite email before accepting.';
   static const String parentLocationUnavailable = 'Location not available yet';
 }

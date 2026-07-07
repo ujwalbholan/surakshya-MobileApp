@@ -85,11 +85,8 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
       );
     } on SurakshyaApiException catch (e) {
       if (!mounted) return;
-      final text = e.message.toLowerCase().contains('phone')
-          ? CopyConstants.parentPhoneVerifyHint
-          : e.message;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(text)),
+        SnackBar(content: Text(e.message)),
       );
       await ref.read(parentDashboardProvider.notifier).refresh();
     }
