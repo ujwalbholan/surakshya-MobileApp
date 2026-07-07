@@ -6,22 +6,36 @@ import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
+import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/services/ble_service.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 
-class ProfileTab extends ConsumerWidget {
+class ProfileTab extends ConsumerStatefulWidget {
   const ProfileTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends ConsumerState<ProfileTab> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(guardianLinkingProvider.notifier).refresh();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final dash = ref.watch(dashboardProvider);
+    final guardians = ref.watch(guardianLinkingProvider);
     final user = auth.user;
     final bottomPad = S.bottomNavHeight + MediaQuery.paddingOf(context).bottom;
-    final family = ref.watch(familyMembersProvider);
 
     return ColoredBox(
       color: dashboardBg,
@@ -43,11 +57,11 @@ class ProfileTab extends ConsumerWidget {
                   ),
                   const SizedBox(height: S.md),
                   Text(
-                    user?.name ?? 'Priya Sharma',
+                    user?.name ?? 'User',
                     style: SurakshaTypography.dashGreeting,
                   ),
                   Text(
-                    user?.email ?? user?.phone ?? '+91 98765 43210',
+                    user?.email ?? user?.phone ?? '',
                     style: SurakshaTypography.monoLabel,
                   ),
                 ],
@@ -55,18 +69,38 @@ class ProfileTab extends ConsumerWidget {
             ),
             const SizedBox(height: S.xl),
             _Section(CopyConstants.familyMembersTitle, [
-              ...family.map(
-                (c) => ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: c.avatarPath != null
-                        ? AssetImage(c.avatarPath!)
-                        : null,
-                    child: c.avatarPath == null ? Text(c.initials) : null,
-                  ),
-                  title: Text(c.name),
-                  subtitle: Text('${c.role} · ${c.phone}'),
+              ListTile(
+                title: Text(CopyConstants.manageGuardians),
+                subtitle: Text(
+                  guardians.guardians.isEmpty
+                      ? CopyConstants.noLinkedGuardians
+                      : '${guardians.guardians.length} linked · ${guardians.pendingRequests.length} pending',
                 ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.guardians),
               ),
+              if (guardians.guardians.isEmpty && !guardians.loading)
+                Padding(
+                  padding: const EdgeInsets.only(left: S.md, bottom: S.sm),
+                  child: Text(
+                    CopyConstants.noLinkedGuardians,
+                    style: SurakshaTypography.monoLabel,
+                  ),
+                )
+              else
+                ...guardians.guardians.map(
+                  (g) => ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: surakshaCrimson.withValues(alpha: 0.15),
+                      child: Text(
+                        g.initials,
+                        style: const TextStyle(color: surakshaCrimson),
+                      ),
+                    ),
+                    title: Text(g.fullName),
+                    subtitle: Text('Guardian · ${g.phone}'),
+                  ),
+                ),
             ]),
             _Section('Location', [
               SwitchListTile(
@@ -76,8 +110,9 @@ class ProfileTab extends ConsumerWidget {
                 ),
                 value: dash.locationSharingActive,
                 activeThumbColor: surakshaCrimson,
-                onChanged: (_) =>
-                    ref.read(dashboardProvider.notifier).toggleLocationSharing(),
+                onChanged: (_) => ref
+                    .read(dashboardProvider.notifier)
+                    .toggleLocationSharing(),
               ),
             ]),
             _Section('Device', [

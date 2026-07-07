@@ -2,6 +2,7 @@ library dashboard_provider;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suraksha/core/constants/app_constants.dart';
+import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/models/contact_model.dart';
 import 'package:suraksha/models/location_model.dart';
 
@@ -194,6 +195,21 @@ final dashboardProvider =
 );
 
 final familyMembersProvider = Provider<List<ContactModel>>((ref) {
+  final guardians = ref.watch(guardianLinkingProvider).guardians;
+  if (guardians.isNotEmpty) {
+    return guardians
+        .map(
+          (g) => ContactModel(
+            id: g.id,
+            name: g.fullName,
+            phone: g.phone,
+            role: 'Guardian',
+            isEmergency: true,
+            initials: g.initials,
+          ),
+        )
+        .toList();
+  }
   return ref
       .watch(dashboardProvider)
       .contacts

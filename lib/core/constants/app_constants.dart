@@ -1,5 +1,9 @@
 library app_constants;
 
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class AppConstants {
   AppConstants._();
 
@@ -7,6 +11,21 @@ class AppConstants {
   static const double desktopBreakpoint = 1024.0;
 
   static const String amsBaseUrl = 'https://ams-omwj.onrender.com';
+
+  /// Surakshya backend for auth + guardian linking.
+  /// Override at build/run time: `--dart-define=SURAKSHYA_API_URL=http://192.168.x.x:3000`
+  static String get surakshyaBaseUrl {
+    const fromEnv = String.fromEnvironment('SURAKSHYA_API_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    if (kIsWeb) return 'http://localhost:3000';
+    if (Platform.isAndroid) return 'http://10.0.2.2:3000';
+    return 'http://localhost:3000';
+  }
+
+  static const String prefsAccessToken = 'surakshya_access_token';
+  static const String prefsRefreshToken = 'surakshya_refresh_token';
+  static const String prefsUserRole = 'surakshya_user_role';
+  static const String prefsUserId = 'surakshya_user_id';
   static const String prefsOnboardingDone = 'onboarding_done';
   static const String prefsLoggedIn = 'logged_in';
   static const String prefsMarketingSeen = 'marketing_seen';

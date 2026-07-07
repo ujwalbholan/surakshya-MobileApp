@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
+import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
@@ -49,13 +50,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     setState(() => _isLoading = true);
     final email =
         '${_emailLocalController.text.trim()}@$_emailDomain';
-    await ref.read(authProvider.notifier).login(
-          email,
-          _passwordController.text,
+    try {
+      await ref.read(authProvider.notifier).login(
+            email,
+            _passwordController.text,
+          );
+      if (mounted) context.go(AppRoutes.tracking);
+    } on SurakshyaApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
         );
-    if (mounted) {
-      setState(() => _isLoading = false);
-      context.go(AppRoutes.tracking);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

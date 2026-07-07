@@ -69,7 +69,17 @@ class CopyConstants {
   static const String signupSubtitle = 'Join Suraksha today';
   static const String signupSuccess =
       'Account created. Please sign in to continue.';
-  static const String familyMembersTitle = 'Family members';
+  static const String familyMembersTitle = 'Guardians';
+  static const String guardiansTitle = 'Guardians';
+  static const String inviteGuardianTitle = 'Invite a guardian';
+  static const String inviteGuardianSubtitle =
+      'They will receive login credentials and setup instructions by email and SMS.';
+  static const String pendingRequestsTitle = 'Pending requests';
+  static const String linkedGuardiansTitle = 'Linked guardians';
+  static const String noPendingRequests = 'No pending link requests.';
+  static const String noLinkedGuardians =
+      'No guardians linked yet. Invite someone or accept an incoming request.';
+  static const String manageGuardians = 'Manage guardians';
   static const String familyMembersSubtitle =
       'Your live location on the map · family names, roles, and numbers below';
   static const String familyRoleLabel = 'Role';

@@ -11,4 +11,5 @@ class AppRoutes {
   static const String signup = '/signup';
   static const String tracking = '/tracking';
   static const String profile = '/profile';
+  static const String guardians = '/guardians';
 }
