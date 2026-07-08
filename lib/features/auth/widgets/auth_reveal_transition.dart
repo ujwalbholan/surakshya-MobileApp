@@ -31,16 +31,32 @@ class _AuthRevealTransitionState extends State<AuthRevealTransition>
   AnimationController? _controller;
   Animation<Offset>? _slideAnimation;
   Animation<double>? _fadeAnimation;
-  bool _animationStarted = false;
+  bool _animationScheduled = false;
 
   bool _shouldAnimate(BuildContext context) {
     return !widget.disableAnimations &&
         !MediaQuery.disableAnimationsOf(context);
   }
 
-  void _startAnimation() {
-    if (_animationStarted) return;
-    _animationStarted = true;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_animationScheduled || !_shouldAnimate(context)) return;
+    _animationScheduled = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_shouldAnimate(context)) return;
+      _initAnimation();
+      Future<void>.delayed(_revealDelay, () {
+        if (mounted && _controller != null) {
+          _controller!.forward();
+        }
+      });
+    });
+  }
+
+  void _initAnimation() {
+    if (_controller != null) return;
 
     final controller = AnimationController(
       vsync: this,
@@ -54,12 +70,7 @@ class _AuthRevealTransitionState extends State<AuthRevealTransition>
       end: Offset.zero,
     ).animate(curved);
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(curved);
-
-    Future<void>.delayed(_revealDelay, () {
-      if (mounted && _controller != null) {
-        _controller!.forward();
-      }
-    });
+    setState(() {});
   }
 
   @override
@@ -74,12 +85,16 @@ class _AuthRevealTransitionState extends State<AuthRevealTransition>
       return widget.child;
     }
 
-    _startAnimation();
+    final slide = _slideAnimation;
+    final fade = _fadeAnimation;
+    if (slide == null || fade == null) {
+      return Opacity(opacity: 0, child: widget.child);
+    }
 
     return FadeTransition(
-      opacity: _fadeAnimation!,
+      opacity: fade,
       child: SlideTransition(
-        position: _slideAnimation!,
+        position: slide,
         child: widget.child,
       ),
     );
