@@ -8,6 +8,7 @@ import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
+import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
@@ -205,16 +206,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: const Text('Sign In'),
                   ),
                 ),
-                const SizedBox(height: S.lg),
-                Center(
-                  child: TextButton(
-                    onPressed: () => context.go(AppRoutes.signup),
-                    style: authFooterLinkButtonStyle(),
-                    child: Text(
-                      'Create account',
-                      style: authFooterLinkStyle(),
-                    ),
-                  ),
+                const SizedBox(height: authFooterLinkTopGap),
+                AuthFooterLink(
+                  label: 'Create account',
+                  onPressed: () => context.go(AppRoutes.signup),
                 ),
               ],
             ),

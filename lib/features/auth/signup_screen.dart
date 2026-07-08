@@ -8,6 +8,7 @@ import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
+import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
@@ -250,18 +251,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                   child: const Text('Create Account'),
                                 ),
                               ),
-                              const SizedBox(height: S.lg),
-                              Center(
-                                child: TextButton(
-                                  onPressed: () =>
-                                      context.go(AppRoutes.login),
-                                  style: authFooterLinkButtonStyle(),
-                                  child: Text(
-                                    'Already have an account? Sign in',
-                                    style: authFooterLinkStyle(),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+                              const SizedBox(height: authFooterLinkTopGap),
+                              AuthFooterLink(
+                                label: 'Already have an account? Sign in',
+                                onPressed: () => context.go(AppRoutes.login),
                               ),
                             ],
                           ),
