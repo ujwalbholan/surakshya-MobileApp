@@ -154,16 +154,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
 
-  /// Bias form toward the lower half so the wristband remains the visual focus
-  /// above and unused bottom space is reduced.
-  static const double _formVerticalBias = 0.42;
-
   Widget _buildForm() => Align(
-        alignment: const Alignment(0, _formVerticalBias),
+        alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(S.xl, S.md, S.xl, S.xl2),
+            padding: const EdgeInsets.fromLTRB(S.xl, S.md, S.xl, S.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
