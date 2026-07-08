@@ -16,10 +16,12 @@ class SplashScene extends StatefulWidget {
     super.key,
     required this.phases,
     this.disableAnimations = false,
+    this.showBrandPanel = true,
   });
 
   final SplashPhases phases;
   final bool disableAnimations;
+  final bool showBrandPanel;
 
   @override
   State<SplashScene> createState() => _SplashSceneState();
@@ -86,12 +88,14 @@ class _SplashSceneState extends State<SplashScene> {
                   _LandscapeLayout(
                     phases: widget.phases,
                     disableAnimations: widget.disableAnimations,
+                    showBrandPanel: widget.showBrandPanel,
                   )
                 else
                   _PortraitLayout(
                     phases: widget.phases,
                     heroCenterY: heroCenterY,
                     disableAnimations: widget.disableAnimations,
+                    showBrandPanel: widget.showBrandPanel,
                   ),
               ],
             ),
@@ -127,11 +131,13 @@ class _PortraitLayout extends StatelessWidget {
     required this.phases,
     required this.heroCenterY,
     required this.disableAnimations,
+    required this.showBrandPanel,
   });
 
   final SplashPhases phases;
   final double heroCenterY;
   final bool disableAnimations;
+  final bool showBrandPanel;
 
   @override
   Widget build(BuildContext context) {
@@ -150,15 +156,16 @@ class _PortraitLayout extends StatelessWidget {
             ),
           ),
         ),
-        Positioned.fill(
-          child: RepaintBoundary(
-            child: SplashBrandPanel(
-              phases: phases,
-              landscape: false,
-              disableAnimations: disableAnimations,
+        if (showBrandPanel)
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: SplashBrandPanel(
+                phases: phases,
+                landscape: false,
+                disableAnimations: disableAnimations,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -168,13 +175,24 @@ class _LandscapeLayout extends StatelessWidget {
   const _LandscapeLayout({
     required this.phases,
     required this.disableAnimations,
+    required this.showBrandPanel,
   });
 
   final SplashPhases phases;
   final bool disableAnimations;
+  final bool showBrandPanel;
 
   @override
   Widget build(BuildContext context) {
+    if (!showBrandPanel) {
+      return RepaintBoundary(
+        child: _HeroCenter(
+          phases: phases,
+          disableAnimations: disableAnimations,
+        ),
+      );
+    }
+
     return Row(
       children: [
         Expanded(
