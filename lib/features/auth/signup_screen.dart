@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
+import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
+import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -31,6 +33,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  late final bool _reducedMotion;
+
+  @override
+  void initState() {
+    super.initState();
+    _reducedMotion = WidgetsBinding
+        .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+  }
 
   @override
   void dispose() {
@@ -124,110 +134,125 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: surakshaAuthRight,
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: S.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: const EdgeInsets.all(S.xl),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(CopyConstants.signupTitle,
-                        style: SurakshaTypography.playfairDisplay),
-                    const SizedBox(height: S.sm),
-                    Text(CopyConstants.signupSubtitle,
-                        style: SurakshaTypography.monoLabel),
-                    const SizedBox(height: S.xl2),
-                    TextField(
-                      controller: _nameController,
-                      style: const TextStyle(color: surakshaAuthText),
-                      decoration: const InputDecoration(labelText: 'NAME'),
-                    ),
-                    const SizedBox(height: S.lg),
-                    SurakshaEmailInput(
-                      localPartController: _emailLocalController,
-                      initialDomain: _emailDomain,
-                      placeholder: 'EMAIL USERNAME',
-                      textInputAction: TextInputAction.next,
-                      onDomainChanged: (domain) =>
-                          setState(() => _emailDomain = domain),
-                    ),
-                    const SizedBox(height: S.xs),
-                    Text(
-                      'Enter username only — provider suffix is added automatically.',
-                      style: SurakshaTypography.monoLabel.copyWith(fontSize: 11),
-                    ),
-                    const SizedBox(height: S.lg),
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: surakshaAuthText),
-                      decoration: const InputDecoration(
-                        labelText: 'PHONE',
-                        hintText: '98XXXXXXXX',
-                      ),
-                    ),
-                    const SizedBox(height: S.lg),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      style: const TextStyle(color: surakshaAuthText),
-                      decoration: InputDecoration(
-                        labelText: 'PASSWORD',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const AuthCinematicBackground(disableAnimations: true),
+            Container(color: Colors.black.withValues(alpha: authScrimOpacity)),
+            SafeArea(
+              child: AuthRevealTransition(
+                disableAnimations: _reducedMotion,
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: S.xl),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: Padding(
+                        padding: const EdgeInsets.all(S.xl),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(CopyConstants.signupTitle,
+                                style: SurakshaTypography.playfairDisplay),
+                            const SizedBox(height: S.sm),
+                            Text(CopyConstants.signupSubtitle,
+                                style: SurakshaTypography.monoLabel),
+                            const SizedBox(height: S.xl2),
+                            TextField(
+                              controller: _nameController,
+                              style: const TextStyle(color: surakshaAuthText),
+                              decoration:
+                                  const InputDecoration(labelText: 'NAME'),
+                            ),
+                            const SizedBox(height: S.lg),
+                            SurakshaEmailInput(
+                              localPartController: _emailLocalController,
+                              initialDomain: _emailDomain,
+                              placeholder: 'EMAIL USERNAME',
+                              textInputAction: TextInputAction.next,
+                              onDomainChanged: (domain) =>
+                                  setState(() => _emailDomain = domain),
+                            ),
+                            const SizedBox(height: S.xs),
+                            Text(
+                              'Enter username only — provider suffix is added automatically.',
+                              style: SurakshaTypography.monoLabel
+                                  .copyWith(fontSize: 11),
+                            ),
+                            const SizedBox(height: S.lg),
+                            TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              style: const TextStyle(color: surakshaAuthText),
+                              decoration: const InputDecoration(
+                                labelText: 'PHONE',
+                                hintText: '98XXXXXXXX',
+                              ),
+                            ),
+                            const SizedBox(height: S.lg),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              style: const TextStyle(color: surakshaAuthText),
+                              decoration: InputDecoration(
+                                labelText: 'PASSWORD',
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: S.lg),
+                            TextField(
+                              controller: _confirmPasswordController,
+                              obscureText: _obscureConfirmPassword,
+                              style: const TextStyle(color: surakshaAuthText),
+                              decoration: InputDecoration(
+                                labelText: 'CONFIRM PASSWORD',
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscureConfirmPassword =
+                                        !_obscureConfirmPassword,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: S.xl),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OriginButton(
+                                onPressed: _submit,
+                                loading: _isLoading,
+                                child: const Text('Create Account'),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => context.go(AppRoutes.login),
+                              child: const Text(
+                                  'Already have an account? Sign in'),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: S.lg),
-                    TextField(
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      style: const TextStyle(color: surakshaAuthText),
-                      decoration: InputDecoration(
-                        labelText: 'CONFIRM PASSWORD',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscureConfirmPassword =
-                                !_obscureConfirmPassword,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: S.xl),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OriginButton(
-                        onPressed: _submit,
-                        loading: _isLoading,
-                        child: const Text('Create Account'),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go(AppRoutes.login),
-                      child: const Text('Already have an account? Sign in'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       );
 }
