@@ -241,16 +241,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             Center(
                               child: TextButton(
                                 onPressed: () => context.go(AppRoutes.login),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: surakshaCrimson,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: S.sm,
-                                    horizontal: S.md,
-                                  ),
-                                ),
+                                style: authFooterLinkButtonStyle(),
                                 child: Text(
                                   'Already have an account? Sign in',
-                                  style: SurakshaTypography.monoLabel,
+                                  style: authFooterLinkStyle(),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
