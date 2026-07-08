@@ -9,6 +9,8 @@ import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
+import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
+import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -35,16 +37,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   late final bool _reducedMotion;
+  late final AuthTicketStatusPresenter _statusPresenter;
 
   @override
   void initState() {
     super.initState();
     _reducedMotion = WidgetsBinding
         .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+    _statusPresenter = AuthTicketStatusPresenter((fn) => setState(fn));
   }
 
   @override
   void dispose() {
+    _statusPresenter.dispose();
     _nameController.dispose();
     _emailLocalController.dispose();
     _phoneController.dispose();
@@ -61,36 +66,41 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final confirmPassword = _confirmPasswordController.text;
 
     if (name.isEmpty || emailLocal.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name and email')),
+      _statusPresenter.showError(
+        'Missing details',
+        'Please enter your name and email',
       );
       return;
     }
 
     if (phone.length < 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid phone number')),
+      _statusPresenter.showError(
+        'Invalid phone',
+        'Please enter a valid phone number',
       );
       return;
     }
 
     if (password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a password')),
+      _statusPresenter.showError(
+        'Password required',
+        'Please enter a password',
       );
       return;
     }
 
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
+      _statusPresenter.showError(
+        'Password too short',
+        'Password must be at least 6 characters',
       );
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+      _statusPresenter.showError(
+        'Passwords do not match',
+        'Make sure both password fields match',
       );
       return;
     }
@@ -99,12 +109,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final email = buildEmailAddress(emailLocal, _emailDomain);
     if (!isValidEmail(email)) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Enter a valid email. Use only the username — @gmail.com is added for you.',
-            ),
-          ),
+        _statusPresenter.showInfo(
+          'Invalid email',
+          'Enter a valid email. Use only the username — @gmail.com is added for you.',
         );
         setState(() => _isLoading = false);
       }
@@ -118,15 +125,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             password: password,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(CopyConstants.signupSuccess)),
+      _statusPresenter.showSuccess(
+        'Account created',
+        CopyConstants.signupSuccess,
+        onDismissed: () {
+          if (mounted) context.go(AppRoutes.login);
+        },
       );
-      context.go(AppRoutes.login);
     } on SurakshyaApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
+        _statusPresenter.showError('Sign up failed', e.message);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -257,6 +265,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
               ),
             ),
+            AuthTicketStatusOverlay(presenter: _statusPresenter),
           ],
         ),
       );

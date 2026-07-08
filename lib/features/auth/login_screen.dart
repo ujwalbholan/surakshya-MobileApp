@@ -9,6 +9,8 @@ import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
+import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
+import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -31,16 +33,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   late final bool _reducedMotion;
+  late final AuthTicketStatusPresenter _statusPresenter;
 
   @override
   void initState() {
     super.initState();
     _reducedMotion = WidgetsBinding
         .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+    _statusPresenter = AuthTicketStatusPresenter((fn) => setState(fn));
   }
 
   @override
   void dispose() {
+    _statusPresenter.dispose();
     _emailLocalController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -52,12 +57,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _emailDomain,
     );
     if (!isValidEmail(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Enter a valid email. Use only the username — @gmail.com is added for you.',
-          ),
-        ),
+      _statusPresenter.showInfo(
+        'Invalid email',
+        'Enter a valid email. Use only the username — @gmail.com is added for you.',
       );
       return;
     }
@@ -70,13 +72,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
       if (mounted) {
         final role = ref.read(authProvider).user?.role ?? 'USER';
-        context.go(AppRoutes.homeRouteForRole(role));
+        final route = AppRoutes.homeRouteForRole(role);
+        _statusPresenter.showSuccess(
+          'Login successful',
+          'Welcome back, redirecting…',
+          autoDismiss: authTicketLoginSuccessDelay,
+          onDismissed: () {
+            if (mounted) context.go(route);
+          },
+        );
       }
     } on SurakshyaApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
+        _statusPresenter.showError('Login failed', e.message);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -118,6 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 },
               ),
             ),
+            AuthTicketStatusOverlay(presenter: _statusPresenter),
           ],
         ),
       );
@@ -145,11 +154,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
 
-  Widget _buildForm() => Center(
+  /// Bias form toward the lower half so the wristband remains the visual focus
+  /// above and unused bottom space is reduced.
+  static const double _formVerticalBias = 0.42;
+
+  Widget _buildForm() => Align(
+        alignment: const Alignment(0, _formVerticalBias),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
           child: Padding(
-            padding: const EdgeInsets.all(S.xl),
+            padding: const EdgeInsets.fromLTRB(S.xl, S.md, S.xl, S.xl2),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
