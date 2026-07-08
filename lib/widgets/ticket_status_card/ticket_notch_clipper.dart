@@ -2,14 +2,14 @@ library ticket_notch_clipper;
 
 import 'package:flutter/material.dart';
 
-/// Default corner radius for the ticket card shape.
-const double kTicketNotchCornerRadius = 22;
+/// Compact corner radius for the refined status toast.
+const double kTicketNotchCornerRadius = 14;
 
-/// Default semicircular notch radius on the left and right edges.
-const double kTicketNotchRadius = 15;
+/// Subtle side notch radius (kept small so the silhouette stays clean).
+const double kTicketNotchRadius = 8;
 
-/// Clips a rounded rectangle with semicircular notches centered on the left
-/// and right edges — the ticket-style silhouette used by [TicketStatusCard].
+/// Clips a rounded rectangle with small semicircular notches on the left and
+/// right edges — used by [TicketStatusCard].
 class TicketNotchClipper extends CustomClipper<Path> {
   const TicketNotchClipper({
     this.cornerRadius = kTicketNotchCornerRadius,
