@@ -63,7 +63,7 @@ class SurakshaEmailInput extends StatefulWidget {
 class SurakshaEmailInputState extends State<SurakshaEmailInput> {
   static const _minHeight = 36.0;
   static const _animationDuration = Duration(milliseconds: 150);
-  static const _menuWidth = 120.0;
+  static const _menuWidth = 168.0;
 
   static final TextStyle _suffixStyle = GoogleFonts.inter(
     fontSize: 14,
@@ -254,6 +254,7 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
         child: AnimatedContainer(
           duration: _animationDuration,
           curve: Curves.easeOut,
+          width: double.infinity,
           constraints: const BoxConstraints(minHeight: _minHeight),
           decoration: BoxDecoration(
             color: surakshaCard,
@@ -294,14 +295,16 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   color: surakshaBorder,
                 ),
-                CompositedTransformTarget(
-                  link: _layerLink,
-                  child: _SuffixChip(
-                    label: _selectedOption.label,
-                    enabled: widget.enabled,
-                    open: _menuOpen,
-                    textStyle: _suffixStyle,
-                    onTap: _toggleMenu,
+                Flexible(
+                  child: CompositedTransformTarget(
+                    link: _layerLink,
+                    child: _SuffixChip(
+                      label: _selectedOption.label,
+                      enabled: widget.enabled,
+                      open: _menuOpen,
+                      textStyle: _suffixStyle,
+                      onTap: _toggleMenu,
+                    ),
                   ),
                 ),
               ],
@@ -343,7 +346,14 @@ class _SuffixChip extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(label, style: textStyle),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: textStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const SizedBox(width: 2),
                 Icon(
                   open ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
@@ -385,7 +395,14 @@ class _DomainMenuRow extends StatelessWidget {
                       ? const Icon(Icons.check, size: 16, color: Colors.black)
                       : null,
                 ),
-                Text(option.label, style: style),
+                Expanded(
+                  child: Text(
+                    option.label,
+                    style: style,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),

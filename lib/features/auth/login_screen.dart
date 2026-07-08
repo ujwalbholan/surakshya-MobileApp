@@ -7,6 +7,7 @@ import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
+import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
@@ -88,7 +89,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const AuthCinematicBackground(disableAnimations: true),
+            AuthCinematicBackground(
+              disableAnimations: _reducedMotion ||
+                  MediaQuery.disableAnimationsOf(context),
+            ),
             Container(color: Colors.black.withValues(alpha: authScrimOpacity)),
             SafeArea(
               child: LayoutBuilder(
@@ -168,7 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: surakshaAuthText),
-                  decoration: InputDecoration(
+                  decoration: authFieldDecoration(
                     labelText: 'PASSWORD',
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -195,7 +199,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () => context.go(AppRoutes.signup),
-                    child: const Text('Create account'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: surakshaCrimson,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: S.sm,
+                        horizontal: S.md,
+                      ),
+                    ),
+                    child: Text(
+                      'Create account',
+                      style: SurakshaTypography.monoLabel,
+                    ),
                   ),
                 ),
               ],

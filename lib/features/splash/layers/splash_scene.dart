@@ -17,11 +17,19 @@ class SplashScene extends StatefulWidget {
     required this.phases,
     this.disableAnimations = false,
     this.showBrandPanel = true,
+    this.wristbandScaleMultiplier = 1.0,
+    this.wristbandRingFactor = 0.34,
+    this.heroSlotHalfExtent = 160,
+    this.heroSlotHeight = 320,
   });
 
   final SplashPhases phases;
   final bool disableAnimations;
   final bool showBrandPanel;
+  final double wristbandScaleMultiplier;
+  final double wristbandRingFactor;
+  final double heroSlotHalfExtent;
+  final double heroSlotHeight;
 
   @override
   State<SplashScene> createState() => _SplashSceneState();
@@ -89,6 +97,8 @@ class _SplashSceneState extends State<SplashScene> {
                     phases: widget.phases,
                     disableAnimations: widget.disableAnimations,
                     showBrandPanel: widget.showBrandPanel,
+                    wristbandScaleMultiplier: widget.wristbandScaleMultiplier,
+                    wristbandRingFactor: widget.wristbandRingFactor,
                   )
                 else
                   _PortraitLayout(
@@ -96,6 +106,10 @@ class _SplashSceneState extends State<SplashScene> {
                     heroCenterY: heroCenterY,
                     disableAnimations: widget.disableAnimations,
                     showBrandPanel: widget.showBrandPanel,
+                    wristbandScaleMultiplier: widget.wristbandScaleMultiplier,
+                    wristbandRingFactor: widget.wristbandRingFactor,
+                    heroSlotHalfExtent: widget.heroSlotHalfExtent,
+                    heroSlotHeight: widget.heroSlotHeight,
                   ),
               ],
             ),
@@ -110,10 +124,14 @@ class _HeroCenter extends StatelessWidget {
   const _HeroCenter({
     required this.phases,
     required this.disableAnimations,
+    this.wristbandScaleMultiplier = 1.0,
+    this.wristbandRingFactor = 0.34,
   });
 
   final SplashPhases phases;
   final bool disableAnimations;
+  final double wristbandScaleMultiplier;
+  final double wristbandRingFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +139,8 @@ class _HeroCenter extends StatelessWidget {
       child: SplashWristband(
         phases: phases,
         disableAnimations: disableAnimations,
+        scaleMultiplier: wristbandScaleMultiplier,
+        ringSizeFactor: wristbandRingFactor,
       ),
     );
   }
@@ -132,12 +152,20 @@ class _PortraitLayout extends StatelessWidget {
     required this.heroCenterY,
     required this.disableAnimations,
     required this.showBrandPanel,
+    this.wristbandScaleMultiplier = 1.0,
+    this.wristbandRingFactor = 0.34,
+    this.heroSlotHalfExtent = 160,
+    this.heroSlotHeight = 320,
   });
 
   final SplashPhases phases;
   final double heroCenterY;
   final bool disableAnimations;
   final bool showBrandPanel;
+  final double wristbandScaleMultiplier;
+  final double wristbandRingFactor;
+  final double heroSlotHalfExtent;
+  final double heroSlotHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -145,14 +173,16 @@ class _PortraitLayout extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         Positioned(
-          top: heroCenterY - 160,
+          top: heroCenterY - heroSlotHalfExtent,
           left: 0,
           right: 0,
-          height: 320,
+          height: heroSlotHeight,
           child: RepaintBoundary(
             child: _HeroCenter(
               phases: phases,
               disableAnimations: disableAnimations,
+              wristbandScaleMultiplier: wristbandScaleMultiplier,
+              wristbandRingFactor: wristbandRingFactor,
             ),
           ),
         ),
@@ -176,11 +206,15 @@ class _LandscapeLayout extends StatelessWidget {
     required this.phases,
     required this.disableAnimations,
     required this.showBrandPanel,
+    this.wristbandScaleMultiplier = 1.0,
+    this.wristbandRingFactor = 0.34,
   });
 
   final SplashPhases phases;
   final bool disableAnimations;
   final bool showBrandPanel;
+  final double wristbandScaleMultiplier;
+  final double wristbandRingFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +223,8 @@ class _LandscapeLayout extends StatelessWidget {
         child: _HeroCenter(
           phases: phases,
           disableAnimations: disableAnimations,
+          wristbandScaleMultiplier: wristbandScaleMultiplier,
+          wristbandRingFactor: wristbandRingFactor,
         ),
       );
     }
@@ -211,6 +247,8 @@ class _LandscapeLayout extends StatelessWidget {
             child: _HeroCenter(
               phases: phases,
               disableAnimations: disableAnimations,
+              wristbandScaleMultiplier: wristbandScaleMultiplier,
+              wristbandRingFactor: wristbandRingFactor,
             ),
           ),
         ),

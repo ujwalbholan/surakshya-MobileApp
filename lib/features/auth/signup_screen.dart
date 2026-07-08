@@ -7,6 +7,7 @@ import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
+import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
@@ -138,7 +139,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const AuthCinematicBackground(disableAnimations: true),
+            AuthCinematicBackground(
+              disableAnimations: _reducedMotion ||
+                  MediaQuery.disableAnimationsOf(context),
+            ),
             Container(color: Colors.black.withValues(alpha: authScrimOpacity)),
             SafeArea(
               child: AuthRevealTransition(
@@ -164,7 +168,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               controller: _nameController,
                               style: const TextStyle(color: surakshaAuthText),
                               decoration:
-                                  const InputDecoration(labelText: 'NAME'),
+                                  authFieldDecoration(labelText: 'NAME'),
                             ),
                             const SizedBox(height: S.lg),
                             SurakshaEmailInput(
@@ -175,18 +179,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               onDomainChanged: (domain) =>
                                   setState(() => _emailDomain = domain),
                             ),
-                            const SizedBox(height: S.xs),
-                            Text(
-                              'Enter username only — provider suffix is added automatically.',
-                              style: SurakshaTypography.monoLabel
-                                  .copyWith(fontSize: 11),
-                            ),
                             const SizedBox(height: S.lg),
                             TextField(
                               controller: _phoneController,
                               keyboardType: TextInputType.phone,
                               style: const TextStyle(color: surakshaAuthText),
-                              decoration: const InputDecoration(
+                              decoration: authFieldDecoration(
                                 labelText: 'PHONE',
                                 hintText: '98XXXXXXXX',
                               ),
@@ -196,7 +194,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               controller: _passwordController,
                               obscureText: _obscurePassword,
                               style: const TextStyle(color: surakshaAuthText),
-                              decoration: InputDecoration(
+                              decoration: authFieldDecoration(
                                 labelText: 'PASSWORD',
                                 suffixIcon: IconButton(
                                   icon: Icon(
@@ -215,7 +213,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               controller: _confirmPasswordController,
                               obscureText: _obscureConfirmPassword,
                               style: const TextStyle(color: surakshaAuthText),
-                              decoration: InputDecoration(
+                              decoration: authFieldDecoration(
                                 labelText: 'CONFIRM PASSWORD',
                                 suffixIcon: IconButton(
                                   icon: Icon(
@@ -239,10 +237,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 child: const Text('Create Account'),
                               ),
                             ),
-                            TextButton(
-                              onPressed: () => context.go(AppRoutes.login),
-                              child: const Text(
-                                  'Already have an account? Sign in'),
+                            const SizedBox(height: S.lg),
+                            Center(
+                              child: TextButton(
+                                onPressed: () => context.go(AppRoutes.login),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: surakshaCrimson,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: S.sm,
+                                    horizontal: S.md,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Already have an account? Sign in',
+                                  style: SurakshaTypography.monoLabel,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
                           ],
                         ),

@@ -106,8 +106,12 @@ class _OriginButtonState extends State<OriginButton>
 
   void _syncFillAnimation() {
     if (_showFill) {
+      _fillController.duration = _isHovered && !_isPressed
+          ? const Duration(milliseconds: 280)
+          : _fillDuration;
       _fillController.forward();
     } else {
+      _fillController.duration = _fillDuration;
       _fillController.reverse();
     }
   }
@@ -196,12 +200,18 @@ class _OriginButtonState extends State<OriginButton>
           focusNode: _focusNode,
           onKeyEvent: _handleKeyEvent,
           child: MouseRegion(
-            onEnter: (event) {
-              _setOrigin(event.localPosition.dx, event.localPosition.dy);
+            cursor: SystemMouseCursors.click,
+            hitTestBehavior: HitTestBehavior.opaque,
+            onEnter: (_) {
               _setHovered(true);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && _isHovered && !_isPressed) {
+                  _setOriginToCenter();
+                }
+              });
             },
             onHover: (event) {
-              if (_isHovered || _isPressed) {
+              if (_isHovered) {
                 _setOrigin(event.localPosition.dx, event.localPosition.dy);
               }
             },
@@ -268,7 +278,9 @@ class _OriginButtonState extends State<OriginButton>
                             decoration: BoxDecoration(
                               color: surakshaCard,
                               border: Border.all(
-                                color: surakshaBorder,
+                                color: _isHovered && !_isPressed && !_isInactive
+                                    ? surakshaAuthText.withValues(alpha: 0.35)
+                                    : surakshaBorder,
                                 width: 0.5,
                               ),
                               borderRadius: BorderRadius.circular(_radius),

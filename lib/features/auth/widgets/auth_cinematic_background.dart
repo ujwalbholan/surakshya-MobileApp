@@ -8,16 +8,26 @@ import 'package:suraksha/features/splash/splash_timeline.dart';
 /// Opacity of the black scrim layered over the cinematic background for form readability.
 const authScrimOpacity = 0.5;
 
-/// Shared hold-frame cinematic background for auth screens.
+/// Wristband scale boost on auth screens (splash default is 1.0).
+const authWristbandScaleMultiplier = 1.3;
+
+/// Ring radius factor vs shortest screen side (splash default is 0.34).
+const authWristbandRingFactor = 0.42;
+
+/// Portrait hero slot size for the larger auth wristband.
+const authHeroSlotHalfExtent = 200.0;
+const authHeroSlotHeight = 400.0;
+
+/// Shared cinematic background for auth screens.
 ///
 /// Renders splash atmosphere and wristband at [SplashMasterController.holdT]
-/// without brand copy. When [disableAnimations] is true (default), particles
-/// are hidden and wristband idle motion is disabled — matching splash
-/// reduced-motion behavior.
+/// without brand copy. When [disableAnimations] is false, wristband idle spin,
+/// tumble, float, and particles match the splash hold frame. When true
+/// (reduced motion), the scene is fully static.
 class AuthCinematicBackground extends StatelessWidget {
   const AuthCinematicBackground({
     super.key,
-    this.disableAnimations = true,
+    this.disableAnimations = false,
   });
 
   final bool disableAnimations;
@@ -28,6 +38,10 @@ class AuthCinematicBackground extends StatelessWidget {
       phases: const SplashPhases(SplashMasterController.holdT),
       disableAnimations: disableAnimations,
       showBrandPanel: false,
+      wristbandScaleMultiplier: authWristbandScaleMultiplier,
+      wristbandRingFactor: authWristbandRingFactor,
+      heroSlotHalfExtent: authHeroSlotHalfExtent,
+      heroSlotHeight: authHeroSlotHeight,
     );
   }
 }

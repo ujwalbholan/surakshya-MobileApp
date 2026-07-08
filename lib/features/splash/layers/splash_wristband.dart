@@ -12,10 +12,14 @@ class SplashWristband extends StatefulWidget {
     super.key,
     required this.phases,
     this.disableAnimations = false,
+    this.scaleMultiplier = 1.0,
+    this.ringSizeFactor = 0.34,
   });
 
   final SplashPhases phases;
   final bool disableAnimations;
+  final double scaleMultiplier;
+  final double ringSizeFactor;
 
   @override
   State<SplashWristband> createState() => _SplashWristbandState();
@@ -71,9 +75,11 @@ class _SplashWristbandState extends State<SplashWristband>
   @override
   Widget build(BuildContext context) {
     final shortestSide = MediaQuery.sizeOf(context).shortestSide;
-    final ring = shortestSide * 0.34;
+    final ring = shortestSide * widget.ringSizeFactor;
 
-    final scale = widget.disableAnimations ? 1.28 : widget.phases.wristbandScale;
+    final baseScale =
+        widget.disableAnimations ? 1.28 : widget.phases.wristbandScale;
+    final scale = baseScale * widget.scaleMultiplier;
     final opacity = widget.disableAnimations ? 1.0 : widget.phases.wristbandOpacity;
 
     final timelineRotation =
