@@ -5,6 +5,9 @@ import 'package:suraksha/features/splash/layers/splash_scene.dart';
 import 'package:suraksha/features/splash/splash_master_controller.dart';
 import 'package:suraksha/features/splash/splash_timeline.dart';
 
+/// Opacity of the black scrim layered over the cinematic background for form readability.
+const authScrimOpacity = 0.5;
+
 /// Shared hold-frame cinematic background for auth screens.
 ///
 /// Renders splash atmosphere and wristband at [SplashMasterController.holdT]

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
+import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
+import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -21,29 +23,25 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen>
-    with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailLocalController = TextEditingController();
   final _passwordController = TextEditingController();
   String _emailDomain = EmailDomains.defaultSelected;
   bool _obscurePassword = true;
   bool _isLoading = false;
-  late final AnimationController _entryController;
+  late final bool _reducedMotion;
 
   @override
   void initState() {
     super.initState();
-    _entryController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..forward();
+    _reducedMotion = WidgetsBinding
+        .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
   }
 
   @override
   void dispose() {
     _emailLocalController.dispose();
     _passwordController.dispose();
-    _entryController.dispose();
     super.dispose();
   }
 
@@ -86,109 +84,121 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: surakshaAuthRight,
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth >= 768;
-            return isDesktop
-                ? Row(
-                    children: [
-                      Expanded(child: _buildLeftPanel()),
-                      Expanded(child: _buildForm()),
-                    ],
-                  )
-                : _buildForm();
-          },
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const AuthCinematicBackground(disableAnimations: true),
+            Container(color: Colors.black.withValues(alpha: authScrimOpacity)),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop = constraints.maxWidth >= 768;
+                  if (isDesktop) {
+                    return Row(
+                      children: [
+                        Expanded(child: _buildLeftPanel()),
+                        Expanded(
+                          child: AuthRevealTransition(
+                            disableAnimations: _reducedMotion,
+                            child: _buildForm(),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return AuthRevealTransition(
+                    disableAnimations: _reducedMotion,
+                    child: _buildForm(),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       );
 
-  Widget _buildLeftPanel() => Container(
-        color: surakshaAuthLeft,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.shield_outlined, color: surakshaCrimson, size: 48),
-              const SizedBox(height: S.lg),
-              Text(
-                'THE SURAKSHA',
-                style: SurakshaTypography.playfairDisplay.copyWith(
-                  fontSize: 20,
-                  letterSpacing: 4,
-                  color: surakshaAuthText,
-                ),
+  Widget _buildLeftPanel() => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.shield_outlined, color: surakshaCrimson, size: 48),
+            const SizedBox(height: S.lg),
+            Text(
+              'THE SURAKSHA',
+              style: SurakshaTypography.playfairDisplay.copyWith(
+                fontSize: 20,
+                letterSpacing: 4,
+                color: surakshaAuthText,
               ),
-              const SizedBox(height: S.sm),
-              Text(
-                'Wear it. Trust it. Stay safe.',
-                style: SurakshaTypography.monoLabel,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: S.sm),
+            Text(
+              'Wear it. Trust it. Stay safe.',
+              style: SurakshaTypography.monoLabel,
+            ),
+          ],
         ),
       );
 
   Widget _buildForm() => Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
-          child: FadeTransition(
-            opacity: _entryController,
-            child: Padding(
-              padding: const EdgeInsets.all(S.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(CopyConstants.loginTitle,
-                      style: SurakshaTypography.playfairDisplay),
-                  const SizedBox(height: S.sm),
-                  Text(CopyConstants.loginSubtitle,
-                      style: SurakshaTypography.monoLabel),
-                  const SizedBox(height: S.xl2),
-                  SurakshaEmailInput(
-                    localPartController: _emailLocalController,
-                    initialDomain: _emailDomain,
-                    textInputAction: TextInputAction.next,
-                    onDomainChanged: (domain) =>
-                        setState(() => _emailDomain = domain),
-                  ),
-                  const SizedBox(height: S.lg),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    style: const TextStyle(color: surakshaAuthText),
-                    decoration: InputDecoration(
-                      labelText: 'PASSWORD',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
+          child: Padding(
+            padding: const EdgeInsets.all(S.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(CopyConstants.loginTitle,
+                    style: SurakshaTypography.playfairDisplay),
+                const SizedBox(height: S.sm),
+                Text(CopyConstants.loginSubtitle,
+                    style: SurakshaTypography.monoLabel),
+                const SizedBox(height: S.xl2),
+                SurakshaEmailInput(
+                  localPartController: _emailLocalController,
+                  initialDomain: _emailDomain,
+                  textInputAction: TextInputAction.next,
+                  onDomainChanged: (domain) =>
+                      setState(() => _emailDomain = domain),
+                ),
+                const SizedBox(height: S.lg),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  style: const TextStyle(color: surakshaAuthText),
+                  decoration: InputDecoration(
+                    labelText: 'PASSWORD',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
                       ),
                     ),
                   ),
-                  const SizedBox(height: S.xl),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OriginButton(
-                      onPressed: _submit,
-                      loading: _isLoading,
-                      child: const Text('Sign In'),
-                    ),
+                ),
+                const SizedBox(height: S.xl),
+                SizedBox(
+                  width: double.infinity,
+                  child: OriginButton(
+                    onPressed: _submit,
+                    loading: _isLoading,
+                    child: const Text('Sign In'),
                   ),
-                  const SizedBox(height: S.lg),
-                  Center(
-                    child: TextButton(
-                      onPressed: () => context.go(AppRoutes.signup),
-                      child: const Text('Create account'),
-                    ),
+                ),
+                const SizedBox(height: S.lg),
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.go(AppRoutes.signup),
+                    child: const Text('Create account'),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
