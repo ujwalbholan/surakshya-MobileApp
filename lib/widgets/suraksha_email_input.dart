@@ -66,9 +66,9 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
   static const _menuWidth = 168.0;
 
   static final TextStyle _suffixStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    height: 1.43,
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    height: 1.2,
     color: surakshaForeground,
   );
 
@@ -291,20 +291,18 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
                 ),
                 Container(
                   width: 1,
-                  height: 20,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  height: 18,
+                  margin: const EdgeInsets.only(left: 6, right: 6),
                   color: surakshaBorder,
                 ),
-                Flexible(
-                  child: CompositedTransformTarget(
-                    link: _layerLink,
-                    child: _SuffixChip(
-                      label: _selectedOption.label,
-                      enabled: widget.enabled,
-                      open: _menuOpen,
-                      textStyle: _suffixStyle,
-                      onTap: _toggleMenu,
-                    ),
+                CompositedTransformTarget(
+                  link: _layerLink,
+                  child: _SuffixChip(
+                    label: _selectedOption.label,
+                    enabled: widget.enabled,
+                    open: _menuOpen,
+                    textStyle: _suffixStyle,
+                    onTap: _toggleMenu,
                   ),
                 ),
               ],
@@ -325,6 +323,8 @@ class _SuffixChip extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _chipAnimDuration = Duration(milliseconds: 150);
+
   final String label;
   final bool enabled;
   final bool open;
@@ -336,29 +336,32 @@ class _SuffixChip extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(S.radius),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          borderRadius: BorderRadius.circular(6),
+          child: AnimatedContainer(
+            duration: _chipAnimDuration,
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.fromLTRB(8, 5, 4, 5),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(S.radius),
-              border: Border.all(color: surakshaBorder),
+              color: surakshaSecondary,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: open ? surakshaAuthFocus : surakshaBorder,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Flexible(
-                  child: Text(
-                    label,
-                    style: textStyle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  label,
+                  style: textStyle,
+                  maxLines: 1,
+                  softWrap: false,
                 ),
                 const SizedBox(width: 2),
                 Icon(
-                  open ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  size: 18,
-                  color: surakshaMuted,
+                  open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  size: 16,
+                  color: open ? surakshaForeground : surakshaMuted,
                 ),
               ],
             ),
