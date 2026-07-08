@@ -155,113 +155,120 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             SafeArea(
               child: AuthRevealTransition(
                 disableAnimations: _reducedMotion,
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(vertical: S.xl),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 400),
-                      child: Padding(
-                        padding: const EdgeInsets.all(S.xl),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(CopyConstants.signupTitle,
-                                style: SurakshaTypography.playfairDisplay),
-                            const SizedBox(height: S.sm),
-                            Text(CopyConstants.signupSubtitle,
-                                style: SurakshaTypography.monoLabel),
-                            const SizedBox(height: S.xl2),
-                            TextField(
-                              controller: _nameController,
-                              style: const TextStyle(color: surakshaAuthText),
-                              decoration:
-                                  authFieldDecoration(labelText: 'NAME'),
-                            ),
-                            const SizedBox(height: S.lg),
-                            SurakshaEmailInput(
-                              localPartController: _emailLocalController,
-                              initialDomain: _emailDomain,
-                              placeholder: 'EMAIL USERNAME',
-                              textInputAction: TextInputAction.next,
-                              onDomainChanged: (domain) =>
-                                  setState(() => _emailDomain = domain),
-                            ),
-                            const SizedBox(height: S.lg),
-                            TextField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: const TextStyle(color: surakshaAuthText),
-                              decoration: authFieldDecoration(
-                                labelText: 'PHONE',
-                                hintText: '98XXXXXXXX',
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(S.xl, S.md, S.xl, S.lg),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - S.md - S.lg,
+                          maxWidth: 400,
+                        ),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(CopyConstants.signupTitle,
+                                  style: SurakshaTypography.playfairDisplay),
+                              const SizedBox(height: S.sm),
+                              Text(CopyConstants.signupSubtitle,
+                                  style: SurakshaTypography.monoLabel),
+                              const SizedBox(height: S.xl2),
+                              TextField(
+                                controller: _nameController,
+                                style: const TextStyle(color: surakshaAuthText),
+                                decoration:
+                                    authFieldDecoration(labelText: 'NAME'),
                               ),
-                            ),
-                            const SizedBox(height: S.lg),
-                            TextField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              style: const TextStyle(color: surakshaAuthText),
-                              decoration: authFieldDecoration(
-                                labelText: 'PASSWORD',
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                  ),
-                                  onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword,
+                              const SizedBox(height: S.lg),
+                              SurakshaEmailInput(
+                                localPartController: _emailLocalController,
+                                initialDomain: _emailDomain,
+                                placeholder: 'EMAIL USERNAME',
+                                textInputAction: TextInputAction.next,
+                                onDomainChanged: (domain) =>
+                                    setState(() => _emailDomain = domain),
+                              ),
+                              const SizedBox(height: S.lg),
+                              TextField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                style: const TextStyle(color: surakshaAuthText),
+                                decoration: authFieldDecoration(
+                                  labelText: 'PHONE',
+                                  hintText: '98XXXXXXXX',
+                                ),
+                              ),
+                              const SizedBox(height: S.lg),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                style: const TextStyle(color: surakshaAuthText),
+                                decoration: authFieldDecoration(
+                                  labelText: 'PASSWORD',
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                    ),
+                                    onPressed: () => setState(
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: S.lg),
-                            TextField(
-                              controller: _confirmPasswordController,
-                              obscureText: _obscureConfirmPassword,
-                              style: const TextStyle(color: surakshaAuthText),
-                              decoration: authFieldDecoration(
-                                labelText: 'CONFIRM PASSWORD',
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureConfirmPassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                  ),
-                                  onPressed: () => setState(
-                                    () => _obscureConfirmPassword =
-                                        !_obscureConfirmPassword,
+                              const SizedBox(height: S.lg),
+                              TextField(
+                                controller: _confirmPasswordController,
+                                obscureText: _obscureConfirmPassword,
+                                style: const TextStyle(color: surakshaAuthText),
+                                decoration: authFieldDecoration(
+                                  labelText: 'CONFIRM PASSWORD',
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscureConfirmPassword
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                    ),
+                                    onPressed: () => setState(
+                                      () => _obscureConfirmPassword =
+                                          !_obscureConfirmPassword,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: S.xl),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OriginButton(
-                                onPressed: _submit,
-                                loading: _isLoading,
-                                child: const Text('Create Account'),
-                              ),
-                            ),
-                            const SizedBox(height: S.lg),
-                            Center(
-                              child: TextButton(
-                                onPressed: () => context.go(AppRoutes.login),
-                                style: authFooterLinkButtonStyle(),
-                                child: Text(
-                                  'Already have an account? Sign in',
-                                  style: authFooterLinkStyle(),
-                                  textAlign: TextAlign.center,
+                              const SizedBox(height: S.xl),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OriginButton(
+                                  onPressed: _submit,
+                                  loading: _isLoading,
+                                  child: const Text('Create Account'),
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: S.lg),
+                              Center(
+                                child: TextButton(
+                                  onPressed: () =>
+                                      context.go(AppRoutes.login),
+                                  style: authFooterLinkButtonStyle(),
+                                  child: Text(
+                                    'Already have an account? Sign in',
+                                    style: authFooterLinkStyle(),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ),
