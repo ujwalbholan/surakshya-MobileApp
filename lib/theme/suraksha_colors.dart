@@ -24,6 +24,10 @@ const Color surakshaAuthLeft = Color(0xFF050505);
 const Color surakshaAuthRight = Color(0xFF080808);
 const Color surakshaAuthText = Color(0xFFF0EDE8);
 const Color surakshaAuthFocus = Color(0xB3CC2233);
+/// Auth footer links (≈4.2:1 on black); rose/crimson family matching the ring.
+const Color surakshaAuthLink = Color(0xFFD81B60);
+/// Pressed/hover splash for auth links (~12% of Material pink `#E91E63`).
+const Color surakshaAuthLinkSplash = Color(0x1FE91E63);
 
 const Color surakshaSuccess = Color(0xFF27AE60);
 const Color surakshaWarning = Color(0xFFF39C12);

@@ -2,10 +2,11 @@ library auth_footer_link;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 
-/// Deep red for auth screen footer links (Create account / Sign in).
-const authFooterLinkColor = Color(0xFF800517);
+/// Accessible auth footer link color — aliases [surakshaAuthLink].
+const authFooterLinkColor = surakshaAuthLink;
 
 /// Spacing between primary button and footer link (~½ of [S.md]).
 const authFooterLinkTopGap = S.sm;
@@ -57,50 +58,39 @@ class _AuthFooterLinkState extends State<AuthFooterLink> {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => _setHovered(true),
-        onHover: (_) => _setHovered(true),
-        onExit: (_) {
-          _setHovered(false);
-          _setPressed(false);
-        },
-        child: Listener(
-          onPointerHover: (_) => _setHovered(true),
-          child: GestureDetector(
-            onTapDown: (_) => _setPressed(true),
-            onTapUp: (_) {
-              _setPressed(false);
-              widget.onPressed();
-            },
-            onTapCancel: () => _setPressed(false),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: S.xs,
-                horizontal: S.sm,
-              ),
-              child: IntrinsicWidth(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      widget.label,
-                      textAlign: TextAlign.center,
-                      style: authFooterLinkStyle(),
-                    ),
-                    const SizedBox(height: _underlineGap),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      curve: Curves.easeOut,
-                      height: _underlineThickness,
-                      color: _showUnderline
-                          ? authFooterLinkColor
-                          : Colors.transparent,
-                    ),
-                  ],
-                ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onPressed,
+          onHover: _setHovered,
+          onHighlightChanged: _setPressed,
+          overlayColor: const WidgetStatePropertyAll(surakshaAuthLinkSplash),
+          borderRadius: BorderRadius.circular(4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: S.xs,
+              horizontal: S.sm,
+            ),
+            child: IntrinsicWidth(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    widget.label,
+                    textAlign: TextAlign.center,
+                    style: authFooterLinkStyle(),
+                  ),
+                  const SizedBox(height: _underlineGap),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    curve: Curves.easeOut,
+                    height: _underlineThickness,
+                    color: _showUnderline
+                        ? authFooterLinkColor
+                        : Colors.transparent,
+                  ),
+                ],
               ),
             ),
           ),
