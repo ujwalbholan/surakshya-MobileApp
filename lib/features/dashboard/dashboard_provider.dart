@@ -141,9 +141,12 @@ final kMockPlaces = <PlaceModel>[];
 
 class DashboardNotifier extends StateNotifier<DashboardStateData> {
   DashboardNotifier()
-      : super(DashboardStateData(
-          contacts: kMockContacts,
-          places: kMockPlaces,
+      : super(const DashboardStateData(
+          contacts: [],
+          places: [],
+          batteryLevel: 0,
+          bandConnected: false,
+          contactsOnline: 0,
         ));
 
   void setTab(DashboardTab tab) => state = state.copyWith(currentTab: tab);
@@ -205,26 +208,40 @@ final dashboardProvider =
 );
 
 final familyMembersProvider = Provider<List<ContactModel>>((ref) {
-  final guardians = ref.watch(guardianLinkingProvider).guardians;
-  if (guardians.isNotEmpty) {
-    return guardians
-        .map(
-          (g) => ContactModel(
-            id: g.id,
-            name: g.fullName,
-            phone: g.phone,
-            role: 'Guardian',
-            isEmergency: true,
-            initials: g.initials,
-          ),
-        )
-        .toList();
+  final linking = ref.watch(guardianLinkingProvider);
+  if (linking.error != null || linking.loading) {
+    return const [];
   }
-  return ref
-      .watch(dashboardProvider)
-      .contacts
-      .where((c) => c.id != 'me')
+  if (linking.guardians.isEmpty) {
+    return const [];
+  }
+  return linking.guardians
+      .map(
+        (g) => ContactModel(
+          id: g.id,
+          name: g.fullName,
+          phone: g.phone,
+          role: 'Guardian',
+          isEmergency: true,
+          initials: g.initials,
+        ),
+      )
       .toList();
+});
+
+/// Explicit family-list UI state — never silently fall back to mock contacts.
+enum FamilyListUiState { loading, error, empty, ready }
+
+final familyListUiStateProvider = Provider<FamilyListUiState>((ref) {
+  final linking = ref.watch(guardianLinkingProvider);
+  if (linking.loading) return FamilyListUiState.loading;
+  if (linking.error != null) return FamilyListUiState.error;
+  if (linking.guardians.isEmpty) return FamilyListUiState.empty;
+  return FamilyListUiState.ready;
+});
+
+final familyListErrorProvider = Provider<String?>((ref) {
+  return ref.watch(guardianLinkingProvider).error;
 });
 
 final emergencyContactsProvider = Provider<List<ContactModel>>((ref) {

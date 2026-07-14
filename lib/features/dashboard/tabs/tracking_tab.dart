@@ -27,6 +27,8 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
   Widget build(BuildContext context) {
     final dash = ref.watch(dashboardProvider);
     final family = ref.watch(familyMembersProvider);
+    final familyUi = ref.watch(familyListUiStateProvider);
+    final familyError = ref.watch(familyListErrorProvider);
     final bottomPad = S.bottomNavHeight + MediaQuery.paddingOf(context).bottom;
 
     return Material(
@@ -80,19 +82,43 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
               child: ListView(
                 padding: EdgeInsets.fromLTRB(S.md, S.sm, S.md, bottomPad),
                 children: [
-                  StaggerListAnimator(
-                    itemCount: family.length,
-                    itemBuilder: (context, i, anim) => FadeTransition(
-                      opacity: anim,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.06),
-                          end: Offset.zero,
-                        ).animate(anim),
-                        child: FamilyMemberTile(member: family[i]),
+                  if (familyUi == FamilyListUiState.loading)
+                    const Padding(
+                      padding: EdgeInsets.all(S.lg),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (familyUi == FamilyListUiState.error)
+                    Padding(
+                      padding: const EdgeInsets.all(S.lg),
+                      child: Text(
+                        familyError ?? 'Unable to load family list',
+                        style: SurakshaTypography.dashSubtitle,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else if (familyUi == FamilyListUiState.empty)
+                    Padding(
+                      padding: const EdgeInsets.all(S.lg),
+                      child: Text(
+                        'No family members linked yet.\nInvite a guardian to see them here.',
+                        style: SurakshaTypography.dashSubtitle,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    StaggerListAnimator(
+                      itemCount: family.length,
+                      itemBuilder: (context, i, anim) => FadeTransition(
+                        opacity: anim,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.06),
+                            end: Offset.zero,
+                          ).animate(anim),
+                          child: FamilyMemberTile(member: family[i]),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

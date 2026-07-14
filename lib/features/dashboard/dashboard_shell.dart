@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
+import 'package:suraksha/features/dashboard/device_status_sync.dart';
 import 'package:suraksha/features/dashboard/live_location_tracker.dart';
 import 'package:suraksha/features/dashboard/tabs/profile_tab.dart';
 import 'package:suraksha/features/dashboard/tabs/sos_tab.dart';
@@ -46,6 +47,7 @@ class _DashboardShellState extends ConsumerState<DashboardShell>
   @override
   Widget build(BuildContext context) {
     ref.watch(liveLocationTrackerProvider);
+    ref.watch(deviceStatusSyncProvider);
 
     final state = ref.watch(dashboardProvider);
     final notifier = ref.read(dashboardProvider.notifier);

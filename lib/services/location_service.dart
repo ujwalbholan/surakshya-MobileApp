@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:suraksha/core/constants/app_constants.dart';
 import 'package:suraksha/models/location_model.dart';
 
@@ -51,11 +52,28 @@ class LocationService {
       return const LocationFetchError(LocationFetchFailure.serviceDisabled);
     }
 
+    final status = await Permission.locationWhenInUse.status;
+    if (status.isDenied) {
+      final requested = await Permission.locationWhenInUse.request();
+      if (requested.isDenied) {
+        return const LocationFetchError(LocationFetchFailure.permissionDenied);
+      }
+      if (requested.isPermanentlyDenied) {
+        return const LocationFetchError(
+          LocationFetchFailure.permissionDeniedForever,
+        );
+      }
+    } else if (status.isPermanentlyDenied) {
+      return const LocationFetchError(
+        LocationFetchFailure.permissionDeniedForever,
+      );
+    }
+
+    // Keep geolocator permission state consistent after permission_handler.
     var permission = await checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await requestPermission();
     }
-
     if (permission == LocationPermission.denied) {
       return const LocationFetchError(LocationFetchFailure.permissionDenied);
     }

@@ -44,7 +44,9 @@ class _PeoplePlacesSheetState extends ConsumerState<PeoplePlacesSheet>
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(dashboardProvider);
+    final family = ref.watch(familyMembersProvider);
+    final familyUi = ref.watch(familyListUiStateProvider);
+    final places = ref.watch(dashboardProvider).places;
 
     return DraggableScrollableSheet(
       initialChildSize: AppConstants.sheetInitialSize,
@@ -90,7 +92,8 @@ class _PeoplePlacesSheetState extends ConsumerState<PeoplePlacesSheet>
                   children: [
                     _PeopleList(
                       scrollController: scrollController,
-                      contacts: state.contacts,
+                      contacts: family,
+                      uiState: familyUi,
                       onAdd: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -101,7 +104,7 @@ class _PeoplePlacesSheetState extends ConsumerState<PeoplePlacesSheet>
                     ),
                     _PlacesList(
                       scrollController: scrollController,
-                      places: state.places,
+                      places: places,
                     ),
                   ],
                 ),
@@ -118,11 +121,13 @@ class _PeopleList extends StatelessWidget {
   const _PeopleList({
     required this.scrollController,
     required this.contacts,
+    required this.uiState,
     required this.onAdd,
   });
 
   final ScrollController scrollController;
   final List contacts;
+  final FamilyListUiState uiState;
   final VoidCallback onAdd;
 
   @override
@@ -130,7 +135,31 @@ class _PeopleList extends StatelessWidget {
         controller: scrollController,
         padding: const EdgeInsets.all(S.md),
         children: [
-          ...contacts.map((c) => PeopleListTile(contact: c)),
+          if (uiState == FamilyListUiState.loading)
+            const Padding(
+              padding: EdgeInsets.all(S.lg),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (uiState == FamilyListUiState.error)
+            Padding(
+              padding: const EdgeInsets.all(S.md),
+              child: Text(
+                'Unable to load family list',
+                style: SurakshaTypography.dashSubtitle,
+                textAlign: TextAlign.center,
+              ),
+            )
+          else if (uiState == FamilyListUiState.empty)
+            Padding(
+              padding: const EdgeInsets.all(S.md),
+              child: Text(
+                'No family members linked yet.',
+                style: SurakshaTypography.dashSubtitle,
+                textAlign: TextAlign.center,
+              ),
+            )
+          else
+            ...contacts.map((c) => PeopleListTile(contact: c)),
           const SizedBox(height: S.md),
           OutlinedButton.icon(
             onPressed: onAdd,
@@ -159,6 +188,17 @@ class _PlacesList extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
         controller: scrollController,
         padding: const EdgeInsets.all(S.md),
-        children: places.map((p) => PlacesListTile(place: p)).toList(),
+        children: places.isEmpty
+            ? [
+                Padding(
+                  padding: const EdgeInsets.all(S.lg),
+                  child: Text(
+                    'No places yet. Add one when you are ready.',
+                    style: SurakshaTypography.dashSubtitle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            : places.map((p) => PlacesListTile(place: p)).toList(),
       );
 }
