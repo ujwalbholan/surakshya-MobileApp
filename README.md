@@ -22,41 +22,33 @@ cd suraksha-app
 ./scripts/run_android.sh emulator-5554
 ```
 
-To only wait for a ready emulator (then run flutter yourself):
-
-```bash
-./scripts/ensure_android_emulator.sh emulator-5554
-flutter run -d emulator-5554
-```
-
-**If install still fails:** cold boot the AVD in Android Studio (Device Manager → ⋮ → Cold Boot Now), or:
-
-```bash
-adb -s emulator-5554 emu kill
-emulator -avd Medium_Phone_API_36.1 -no-snapshot-load &
-./scripts/ensure_android_emulator.sh
-flutter run -d emulator-5554
-```
-
-**Kotlin Gradle warning** (`shared_preferences_android` applies KGP): harmless for now. `android/gradle.properties` already sets `android.builtInKotlin=true` per [Flutter’s migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin). Upgrade Flutter/plugins over time to silence it.
-
-**Backend URL on emulator:** Surakshya API defaults to `http://10.0.2.2:3000` (see `lib/core/constants/app_constants.dart`).
+**Backend URL on emulator:** Surakshya API defaults to `http://10.0.2.2:3000` (see `lib/core/constants/app_constants.dart`). Override with `--dart-define=SURAKSHYA_API_URL=...`.
 
 ## Routes
 
 | Path | Screen |
 |------|--------|
-| `/splash` | Brand splash |
-| `/onboarding` | First-launch intro |
-| `/tracking` | Map + People/Places sheet (main app) |
-| `/sos/countdown` | 3s SOS countdown + swipe to cancel |
+| `/splash`, `/splash2` | Brand splash |
+| `/onboarding` | First-launch intro (routed; splash currently skips when logged out) |
 | `/home` | Crimson marketing landing |
-| `/login`, `/signup` | Auth (AMS with offline fallback) |
-| `/evidence`, `/profile` | Vault and settings |
+| `/login`, `/signup` | Auth against Surakshya (`POST /auth/login`, `/auth/register`) |
+| `/guardian/setup` | Guardian invite OTP → set-password activation |
+| `/tracking` | Citizen dashboard (map, family list, SOS tab, profile) |
+| `/guardians` | Child guardian linking |
+| `/parent` | Guardian parent shell (wards, pending accept/reject, invite ward) |
+| `/profile` | Redirects into tracking shell (profile is a tab) |
+
+SOS countdown lives **inside** the SOS tab (not a separate `/sos/countdown` route).
 
 ## Architecture
 
-- **State:** Riverpod `StateNotifier`
+- **State:** Riverpod `StateNotifier` (manual providers; no codegen)
 - **Navigation:** go_router
-- **Maps:** flutter_map ^8.3 + dark OSM tiles (Kathmandu default)
-- **Phase 3 services:** AMS API, geolocator, BLE scan, Hive evidence encryption, local notifications
+- **Maps:** flutter_map + dark OSM tiles (Kathmandu default)
+- **Auth / guardians / SOS create:** Surakshya REST (`flutter_secure_storage` for tokens)
+- **SOS dual-write:** Surakshya `POST /sos` primary; optional non-blocking AMS dual-write behind `AppConstants.sosDualWriteToAmsEnabled`
+- **Device:** geolocator + `permission_handler`, `battery_plus`, `flutter_blue_plus`, local notifications
+
+## Evidence vault
+
+**Not built in this release.** Admin evidence metadata list/create exists on the web/backend; Flutter capture/upload vault and admin decrypt/download are deferred. Do not treat README history mentioning Hive/evidence routes as current scope.
