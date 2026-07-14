@@ -14,23 +14,6 @@ class AmsApiService {
 
   final http.Client _client;
 
-  Future<UserModel> login(String email, String password) async {
-    final response = await _client.post(
-      Uri.parse('${AppConstants.amsBaseUrl}/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return UserModel(
-        name: data['name'] as String? ?? 'Priya Sharma',
-        email: email,
-        phone: data['phone'] as String?,
-      );
-    }
-    throw AmsApiException('Login failed (${response.statusCode})');
-  }
-
   /// Dispatches SOS to the police dashboard with live location and family roster.
   Future<void> sendSosToPoliceDashboard({
     required UserModel user,
