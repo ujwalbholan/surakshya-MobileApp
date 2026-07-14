@@ -10,6 +10,7 @@ import 'package:suraksha/features/auth/login_screen.dart';
 import 'package:suraksha/features/auth/signup_screen.dart';
 import 'package:suraksha/features/dashboard/dashboard_shell.dart';
 import 'package:suraksha/features/guardians/guardians_screen.dart';
+import 'package:suraksha/features/guardians/guardian_setup_screen.dart';
 import 'package:suraksha/features/home/home_screen.dart';
 import 'package:suraksha/features/onboarding/onboarding_screen.dart';
 import 'package:suraksha/features/parent/parent_shell.dart';
@@ -58,6 +59,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           transitionsBuilder: (context, animation, secondary, child) =>
               FadeTransition(opacity: animation, child: child),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.guardianSetup,
+        pageBuilder: (context, state) {
+          final email = state.uri.queryParameters['email'];
+          return CustomTransitionPage<void>(
+            child: GuardianSetupScreen(initialEmail: email),
+            transitionsBuilder: (context, animation, secondary, child) =>
+                FadeTransition(opacity: animation, child: child),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.signup,

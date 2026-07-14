@@ -41,6 +41,69 @@ class _ParentHomeTabState extends ConsumerState<ParentHomeTab> {
     }
   }
 
+  Future<void> _rejectRequest(String requestId) async {
+    try {
+      final message =
+          await ref.read(parentDashboardProvider.notifier).rejectRequest(
+                requestId,
+              );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } on SurakshyaApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+      await ref.read(parentDashboardProvider.notifier).refresh();
+    }
+  }
+
+  Future<void> _inviteWard() async {
+    final controller = TextEditingController();
+    final email = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: dashboardCard,
+        title: Text('Invite ward', style: SurakshaTypography.dashGreeting),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.emailAddress,
+          style: SurakshaTypography.bodyLarge,
+          decoration: const InputDecoration(
+            labelText: 'Child email',
+            labelStyle: TextStyle(color: surakshaMuted),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+    if (email == null || email.isEmpty || !mounted) return;
+    try {
+      final message =
+          await ref.read(parentDashboardProvider.notifier).inviteWard(email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } on SurakshyaApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    }
+  }
+
   Future<void> _openMaps(double lat, double lng) async {
     final uri = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
@@ -93,9 +156,19 @@ class _ParentHomeTabState extends ConsumerState<ParentHomeTab> {
                 _PendingBanner(
                   request: request,
                   onAccept: () => _acceptRequest(request.id),
+                  onReject: () => _rejectRequest(request.id),
                 ),
               const SizedBox(height: S.md),
             ],
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _inviteWard,
+                icon: const Icon(Icons.person_add_alt_1, size: 18),
+                label: const Text('Invite ward by email'),
+              ),
+            ),
+            const SizedBox(height: S.md),
             if (state.loading && state.wards.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: S.xl2),
@@ -203,10 +276,12 @@ class _PendingBanner extends StatelessWidget {
   const _PendingBanner({
     required this.request,
     required this.onAccept,
+    required this.onReject,
   });
 
   final GuardianPendingRequest request;
   final VoidCallback onAccept;
+  final VoidCallback onReject;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -224,6 +299,10 @@ class _PendingBanner extends StatelessWidget {
                 '${request.requesterName} ${CopyConstants.parentPendingLink}',
                 style: SurakshaTypography.bodyMedium,
               ),
+            ),
+            TextButton(
+              onPressed: onReject,
+              child: const Text('Decline'),
             ),
             TextButton(
               onPressed: onAccept,

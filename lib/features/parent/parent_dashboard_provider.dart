@@ -201,6 +201,29 @@ class ParentDashboardNotifier extends StateNotifier<ParentDashboardState> {
       rethrow;
     }
   }
+
+  Future<String> rejectRequest(String requestId) async {
+    final previous = state.pendingRequests;
+    state = state.copyWith(
+      pendingRequests:
+          previous.where((r) => r.id != requestId).toList(growable: false),
+      clearError: true,
+    );
+    try {
+      final message = await _api.rejectGuardianRequest(requestId);
+      await refresh();
+      return message;
+    } catch (e) {
+      state = state.copyWith(pendingRequests: previous);
+      rethrow;
+    }
+  }
+
+  Future<String> inviteWard(String childEmail) async {
+    final message = await _api.inviteWard(childEmail: childEmail);
+    await refresh();
+    return message;
+  }
 }
 
 final parentDashboardProvider =

@@ -269,6 +269,100 @@ class SurakshyaApiService {
     return data['message'] as String? ?? 'Request accepted';
   }
 
+  Future<String> rejectGuardianRequest(String requestId) async {
+    final headers = await _authHeaders();
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/requests/$requestId/reject'),
+      headers: headers,
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to reject request',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ?? 'Request rejected';
+  }
+
+  Future<String> inviteWard({required String childEmail}) async {
+    final headers = await _authHeaders();
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/add-ward'),
+      headers: headers,
+      body: jsonEncode({'child_email': childEmail.trim().toLowerCase()}),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to invite ward',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ??
+        'Invitation sent. The child must accept before linking completes.';
+  }
+
+  /// Public guardian activation (no JWT) — mirrors web /guardian/setup.
+  Future<void> guardianSendOtp(String email) async {
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/send-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email.trim().toLowerCase()}),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to send OTP',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> guardianVerifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/verify-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email.trim().toLowerCase(),
+        'otp': otp.trim(),
+      }),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'OTP verification failed',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> guardianSetPassword({
+    required String email,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/set-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email.trim().toLowerCase(),
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      }),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to set password',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
   Future<List<WardSosEvent>> fetchWardSos(String wardId) async {
     final headers = await _authHeaders();
     final response = await _client.get(
