@@ -10,6 +10,7 @@ import 'package:suraksha/core/utils/haptics.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
 import 'package:suraksha/services/ams_api_service.dart';
+import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/features/dashboard/sos/widgets/sos_app_bar.dart';
 import 'package:suraksha/features/dashboard/sos/widgets/sos_center_display.dart';
 import 'package:suraksha/features/dashboard/sos/widgets/sos_contact_orbit.dart';
@@ -20,6 +21,8 @@ import 'package:suraksha/features/dashboard/sos/widgets/sos_swipe_cancel_bar.dar
 import 'package:suraksha/features/dashboard/sos/widgets/sos_text_section.dart';
 import 'package:suraksha/features/dashboard/sos/widgets/sos_tip_card.dart';
 import 'package:suraksha/models/contact_model.dart';
+import 'package:suraksha/models/location_model.dart';
+import 'package:suraksha/models/user_model.dart';
 import 'package:suraksha/services/notification_service.dart';
 import 'package:suraksha/services/wristband_sos_service.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -35,6 +38,7 @@ class SosTab extends ConsumerStatefulWidget {
 class _SosTabState extends ConsumerState<SosTab> {
   Timer? _countdownTimer;
   Timer? _resetTimer;
+  Timer? _locationPushTimer;
   StreamSubscription<void>? _bandSub;
   int _dispatchIndex = -1;
 
@@ -52,6 +56,7 @@ class _SosTabState extends ConsumerState<SosTab> {
   void dispose() {
     _countdownTimer?.cancel();
     _resetTimer?.cancel();
+    _locationPushTimer?.cancel();
     _bandSub?.cancel();
     super.dispose();
   }
@@ -105,17 +110,79 @@ class _SosTabState extends ConsumerState<SosTab> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(CopyConstants.sosPoliceDispatchBody)),
       );
-      unawaited(
-        ref.read(amsApiServiceProvider).sendSosToPoliceDashboard(
-              user: user,
-              location: dash.currentLocation,
-              familyMembers: dash.contacts,
-              source: 'wristband_double_tap',
-            ),
+      await _dispatchSosPrimaryAndDualWrite(
+        user: user,
+        location: dash.currentLocation,
+        familyMembers: dash.contacts,
       );
     }
 
     _runDispatchSequence();
+  }
+
+  /// Surakshya REST is primary. AMS dual-write is fire-and-forget and must
+  /// never fail or block the in-app countdown/confirmation UX.
+  Future<void> _dispatchSosPrimaryAndDualWrite({
+    required UserModel user,
+    required LocationModel location,
+    required List<ContactModel> familyMembers,
+  }) async {
+    try {
+      final sosId = await ref.read(surakshyaApiServiceProvider).createSos(
+            latitude: location.latitude,
+            longitude: location.longitude,
+            label: location.label,
+            source: 'wristband_double_tap',
+          );
+      if (!mounted) return;
+      ref.read(dashboardProvider.notifier).setActiveSosId(sosId);
+      _startLocationPushLoop(sosId);
+    } catch (_) {
+      // Primary create failed — still continue UX; dual-write may still help.
+    }
+
+    if (AppConstants.sosDualWriteToAmsEnabled) {
+      unawaited(
+        () async {
+          try {
+            await ref.read(amsApiServiceProvider).sendSosToPoliceDashboard(
+                  user: user,
+                  location: location,
+                  familyMembers: familyMembers,
+                  source: 'wristband_double_tap',
+                );
+          } catch (_) {}
+        }(),
+      );
+    }
+  }
+
+  void _startLocationPushLoop(String sosId) {
+    _locationPushTimer?.cancel();
+    _pushLocationOnce(sosId);
+    _locationPushTimer = Timer.periodic(
+      const Duration(seconds: AppConstants.locationPushIntervalSeconds),
+      (_) => _pushLocationOnce(sosId),
+    );
+  }
+
+  void _pushLocationOnce(String sosId) {
+    final dash = ref.read(dashboardProvider);
+    if (dash.sosPhase == SosPhase.idle) {
+      _locationPushTimer?.cancel();
+      return;
+    }
+    unawaited(
+      () async {
+        try {
+          await ref.read(surakshyaApiServiceProvider).pushSosLocation(
+                sosId: sosId,
+                latitude: dash.currentLocation.latitude,
+                longitude: dash.currentLocation.longitude,
+              );
+        } catch (_) {}
+      }(),
+    );
   }
 
   Future<void> _runDispatchSequence() async {
@@ -138,6 +205,7 @@ class _SosTabState extends ConsumerState<SosTab> {
 
   void _cancelSos() {
     _countdownTimer?.cancel();
+    _locationPushTimer?.cancel();
     ref.read(notificationServiceProvider).cancelSosNotification();
     Future.microtask(() {
       ref.read(dashboardProvider.notifier).resolveSos();
@@ -149,6 +217,7 @@ class _SosTabState extends ConsumerState<SosTab> {
     _resetTimer?.cancel();
     _resetTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
+      _locationPushTimer?.cancel();
       Future.microtask(() {
         ref.read(dashboardProvider.notifier).resetSos();
         setState(() => _dispatchIndex = -1);

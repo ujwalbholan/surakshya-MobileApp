@@ -31,6 +31,12 @@ class AppConstants {
   static const String prefsMarketingSeen = 'marketing_seen';
   static const String policeSosEndpoint = '/police/sos';
 
+  /// When true, also fire AMS `sendSosToPoliceDashboard` as non-blocking dual-write.
+  static const bool sosDualWriteToAmsEnabled = true;
+
+  /// How often live location syncs to Surakshya while an SOS is active.
+  static const int locationPushIntervalSeconds = 15;
+
   static const double mapDefaultZoom = 15.0;
   static const double mapDefaultLat = 27.7172;
   static const double mapDefaultLng = 85.3240;

@@ -288,6 +288,66 @@ class SurakshyaApiService {
         .toList();
   }
 
+  /// POST /sos — create citizen SOS (JWT). Returns created event id.
+  Future<String> createSos({
+    required double latitude,
+    required double longitude,
+    String? label,
+    String source = 'wristband_double_tap',
+    String? triggerNotes,
+  }) async {
+    final headers = await _authHeaders();
+    final body = <String, dynamic>{
+      'latitude': latitude,
+      'longitude': longitude,
+      'source': source,
+      if (label != null && label.isNotEmpty) 'label': label,
+      if (triggerNotes != null && triggerNotes.isNotEmpty)
+        'triggerNotes': triggerNotes,
+    };
+    final response = await _client.post(
+      Uri.parse('$_base/sos'),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to create SOS',
+        statusCode: response.statusCode,
+      );
+    }
+    final id = data['id'] as String? ?? '';
+    if (id.isEmpty) {
+      throw SurakshyaApiException('SOS create response missing id');
+    }
+    return id;
+  }
+
+  /// POST /sos/:id/location — live GPS while SOS is active.
+  Future<void> pushSosLocation({
+    required String sosId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final headers = await _authHeaders();
+    final response = await _client.post(
+      Uri.parse('$_base/sos/$sosId/location'),
+      headers: headers,
+      body: jsonEncode({
+        'latitude': latitude,
+        'longitude': longitude,
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final data = _decode(response);
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to update SOS location',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
   Future<void> clearSession() => _tokenStorage.clearTokens();
 
   Map<String, dynamic> _decode(http.Response response) {

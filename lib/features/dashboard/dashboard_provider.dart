@@ -37,6 +37,7 @@ class DashboardStateData {
       label: 'Work',
     ),
     this.unreadNotifications = 0,
+    this.activeSosId,
   });
 
   final SafetyStatus safetyStatus;
@@ -54,6 +55,7 @@ class DashboardStateData {
   final LocationModel currentLocation;
   final LocationModel destination;
   final int unreadNotifications;
+  final String? activeSosId;
 
   DashboardStateData copyWith({
     SafetyStatus? safetyStatus,
@@ -71,6 +73,8 @@ class DashboardStateData {
     LocationModel? currentLocation,
     LocationModel? destination,
     int? unreadNotifications,
+    String? activeSosId,
+    bool clearActiveSosId = false,
   }) =>
       DashboardStateData(
         safetyStatus: safetyStatus ?? this.safetyStatus,
@@ -89,6 +93,8 @@ class DashboardStateData {
         currentLocation: currentLocation ?? this.currentLocation,
         destination: destination ?? this.destination,
         unreadNotifications: unreadNotifications ?? this.unreadNotifications,
+        activeSosId:
+            clearActiveSosId ? null : (activeSosId ?? this.activeSosId),
       );
 }
 
@@ -158,6 +164,7 @@ class DashboardNotifier extends StateNotifier<DashboardStateData> {
         sosPhase: SosPhase.idle,
         sosCountdownSeconds: AppConstants.sosCountdownSeconds,
         safetyStatus: SafetyStatus.protected,
+        clearActiveSosId: true,
       );
 
   void startSosCountdown() => state = state.copyWith(
@@ -165,6 +172,7 @@ class DashboardNotifier extends StateNotifier<DashboardStateData> {
         sosCountdownSeconds: AppConstants.sosCountdownSeconds,
         safetyStatus: SafetyStatus.sosActive,
         currentTab: DashboardTab.sos,
+        clearActiveSosId: true,
       );
 
   void updateCountdown(int seconds) =>
@@ -174,6 +182,8 @@ class DashboardNotifier extends StateNotifier<DashboardStateData> {
         sosPhase: SosPhase.dispatching,
         safetyStatus: SafetyStatus.sosActive,
       );
+
+  void setActiveSosId(String id) => state = state.copyWith(activeSosId: id);
 
   void resolveSos() => state = state.copyWith(
         sosPhase: SosPhase.resolved,
