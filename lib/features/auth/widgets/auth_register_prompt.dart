@@ -145,36 +145,30 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
     final actionWidth = _actionWidthFor(widget.action);
 
     return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _onTap,
-          overlayColor: WidgetStatePropertyAll(
-            surakshyaCrimson.withValues(alpha: 0.12),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: S.xs,
+            horizontal: S.sm,
           ),
-          borderRadius: BorderRadius.circular(4),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: S.xs,
-              horizontal: S.sm,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(widget.prefix, style: _prefixStyle),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.action, style: _actionStyle),
-                    const SizedBox(height: kRegisterBarGap),
-                    _buildBar(actionWidth),
-                  ],
-                ),
-              ],
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(widget.prefix, style: _prefixStyle),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.action, style: _actionStyle),
+                  const SizedBox(height: kRegisterBarGap),
+                  _buildBar(actionWidth),
+                ],
+              ),
+            ],
           ),
         ),
       ),
