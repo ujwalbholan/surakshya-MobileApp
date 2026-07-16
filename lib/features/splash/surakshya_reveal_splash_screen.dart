@@ -10,6 +10,7 @@ import 'package:suraksha/core/extensions/context_extensions.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
+import 'package:suraksha/widgets/tumbler_word.dart';
 
 /// Cold-start text-reveal splash (Option A): illuminates [CopyConstants.appName]
 /// left → right, then Welcome → [AppRoutes.splash2].
@@ -244,49 +245,70 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   }
 }
 
-class _WelcomePillButton extends StatelessWidget {
+class _WelcomePillButton extends StatefulWidget {
   const _WelcomePillButton({required this.onPressed});
 
   final VoidCallback onPressed;
 
   @override
+  State<_WelcomePillButton> createState() => _WelcomePillButtonState();
+}
+
+class _WelcomePillButtonState extends State<_WelcomePillButton> {
+  bool _tumbling = false;
+
+  void _setTumbling(bool value) {
+    if (_tumbling == value) return;
+    setState(() => _tumbling = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final labelStyle = SurakshaTypography.interBase.copyWith(
+      fontSize: _SurakshyaRevealSplashScreenState.kWelcomeFontSize,
+      fontWeight: FontWeight.w400,
+      height: 1.2,
+      color: kSplashTextBright,
+    );
+
     return Semantics(
       button: true,
       label: CopyConstants.welcome,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(
-            _SurakshyaRevealSplashScreenState.kButtonRadius,
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal:
-                  _SurakshyaRevealSplashScreenState.kButtonHorizontalPadding,
-              vertical:
-                  _SurakshyaRevealSplashScreenState.kButtonVerticalPadding,
+      child: MouseRegion(
+        onEnter: (_) => _setTumbling(true),
+        onExit: (_) => _setTumbling(false),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onPressed,
+            onHover: _setTumbling,
+            onHighlightChanged: _setTumbling,
+            borderRadius: BorderRadius.circular(
+              _SurakshyaRevealSplashScreenState.kButtonRadius,
             ),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(
-                _SurakshyaRevealSplashScreenState.kButtonRadius,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal:
+                    _SurakshyaRevealSplashScreenState.kButtonHorizontalPadding,
+                vertical:
+                    _SurakshyaRevealSplashScreenState.kButtonVerticalPadding,
               ),
-              border: Border.all(
-                color: kSplashButtonBorder,
-                width: _SurakshyaRevealSplashScreenState.kButtonBorderWidth,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(
+                  _SurakshyaRevealSplashScreenState.kButtonRadius,
+                ),
+                border: Border.all(
+                  color: kSplashButtonBorder,
+                  width: _SurakshyaRevealSplashScreenState.kButtonBorderWidth,
+                ),
               ),
-            ),
-            child: Text(
-              CopyConstants.welcome,
-              style: SurakshaTypography.interBase.copyWith(
-                fontSize:
-                    _SurakshyaRevealSplashScreenState.kWelcomeFontSize,
-                fontWeight: FontWeight.w400,
-                letterSpacing: _SurakshyaRevealSplashScreenState
-                    .kWelcomeLetterSpacing,
-                color: kSplashTextBright,
+              child: TumblerWord(
+                text: CopyConstants.welcome,
+                style: labelStyle,
+                active: _tumbling,
+                letterSpacing:
+                    _SurakshyaRevealSplashScreenState.kWelcomeLetterSpacing,
               ),
             ),
           ),
