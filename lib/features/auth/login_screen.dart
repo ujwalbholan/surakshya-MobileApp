@@ -8,6 +8,7 @@ import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
+import 'package:suraksha/features/auth/widgets/auth_register_prompt.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
@@ -216,10 +217,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: authFooterLinkTopGap),
-                AuthFooterLink(
-                  label: 'Not a member yet? Register now',
-                  color: surakshyaCrimson,
-                  revealUnderlineOnMount: true,
+                AuthRegisterPrompt(
                   onPressed: () => context.go(AppRoutes.signup),
                 ),
               ],

@@ -9,14 +9,14 @@ import 'package:suraksha/features/splash/splash_timeline.dart';
 const authScrimOpacity = 0.5;
 
 /// Wristband scale boost on auth screens (splash default is 1.0).
-const authWristbandScaleMultiplier = 1.3;
+const authWristbandScaleMultiplier = 1.15;
 
 /// Ring radius factor vs shortest screen side (splash default is 0.34).
-const authWristbandRingFactor = 0.42;
+const authWristbandRingFactor = 0.38;
 
-/// Portrait hero slot size for the larger auth wristband.
-const authHeroSlotHalfExtent = 200.0;
-const authHeroSlotHeight = 400.0;
+/// Portrait hero slot size for the auth wristband.
+const authHeroSlotHalfExtent = 180.0;
+const authHeroSlotHeight = 360.0;
 
 /// Shared cinematic background for auth screens.
 ///

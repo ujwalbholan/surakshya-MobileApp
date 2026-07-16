@@ -2,7 +2,6 @@ library auth_footer_link;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:suraksha/features/auth/widgets/auth_underline_field_style.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 
@@ -28,25 +27,16 @@ TextStyle authFooterLinkStyle({Color color = authFooterLinkColor}) =>
     );
 
 /// Compact footer link with an underline on mouse hover (and press).
-///
-/// When [revealUnderlineOnMount] is true, draws a one-shot left-to-right
-/// crimson underline reveal on first mount, then keeps it static. Hover
-/// underline is skipped in that mode.
 class AuthFooterLink extends StatefulWidget {
   const AuthFooterLink({
     super.key,
     required this.label,
     required this.onPressed,
-    this.revealUnderlineOnMount = false,
     this.color = authFooterLinkColor,
   });
 
   final String label;
   final VoidCallback onPressed;
-
-  /// One-shot L→R width reveal (Sign In register link). Default off so
-  /// Signup links keep hover-only underlines.
-  final bool revealUnderlineOnMount;
 
   /// Link text (and hover underline) color. Defaults to [authFooterLinkColor].
   final Color color;
@@ -55,15 +45,11 @@ class AuthFooterLink extends StatefulWidget {
   State<AuthFooterLink> createState() => _AuthFooterLinkState();
 }
 
-class _AuthFooterLinkState extends State<AuthFooterLink>
-    with SingleTickerProviderStateMixin {
+class _AuthFooterLinkState extends State<AuthFooterLink> {
   bool _hovered = false;
   bool _pressed = false;
-  AnimationController? _revealController;
-  bool _revealStarted = false;
 
-  bool get _showHoverUnderline =>
-      !widget.revealUnderlineOnMount && (_hovered || _pressed);
+  bool get _showUnderline => _hovered || _pressed;
 
   double get _labelWidth {
     final painter = TextPainter(
@@ -77,36 +63,6 @@ class _AuthFooterLinkState extends State<AuthFooterLink>
     return painter.width;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.revealUnderlineOnMount) {
-      _revealController = AnimationController(
-        vsync: this,
-        duration: kRegisterUnderlineDuration,
-      );
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final controller = _revealController;
-    if (controller == null || _revealStarted) return;
-    _revealStarted = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
-      controller.value = 1.0;
-    } else {
-      controller.forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _revealController?.dispose();
-    super.dispose();
-  }
-
   void _setHovered(bool value) {
     if (_hovered == value) return;
     setState(() => _hovered = value);
@@ -117,44 +73,9 @@ class _AuthFooterLinkState extends State<AuthFooterLink>
     setState(() => _pressed = value);
   }
 
-  Widget _buildRevealUnderline(double labelWidth) {
-    final reveal = _revealController!;
-    return AnimatedBuilder(
-      animation: reveal,
-      builder: (context, _) {
-        final t = kRegisterUnderlineCurve.transform(reveal.value);
-        return SizedBox(
-          width: labelWidth,
-          height: kRegisterUnderlineThickness,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: SizedBox(
-              width: labelWidth * t,
-              height: kRegisterUnderlineThickness,
-              child: const ColoredBox(color: kFieldUnderlineFocused),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHoverUnderline(double labelWidth) {
-    return SizedBox(
-      width: labelWidth,
-      child: AnimatedContainer(
-        duration: _hoverUnderlineDuration,
-        curve: Curves.easeOut,
-        height: _hoverUnderlineThickness,
-        color: _showHoverUnderline ? widget.color : Colors.transparent,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final labelWidth = _labelWidth;
-    final reveal = widget.revealUnderlineOnMount;
 
     return Center(
       child: Material(
@@ -178,13 +99,16 @@ class _AuthFooterLinkState extends State<AuthFooterLink>
                   textAlign: TextAlign.center,
                   style: authFooterLinkStyle(color: widget.color),
                 ),
+                const SizedBox(height: _hoverUnderlineGap),
                 SizedBox(
-                  height: reveal ? kRegisterUnderlineGap : _hoverUnderlineGap,
+                  width: labelWidth,
+                  child: AnimatedContainer(
+                    duration: _hoverUnderlineDuration,
+                    curve: Curves.easeOut,
+                    height: _hoverUnderlineThickness,
+                    color: _showUnderline ? widget.color : Colors.transparent,
+                  ),
                 ),
-                if (reveal)
-                  _buildRevealUnderline(labelWidth)
-                else
-                  _buildHoverUnderline(labelWidth),
               ],
             ),
           ),
