@@ -15,7 +15,7 @@ class ActiveSosSync {
   bool _started = false;
   bool _inFlight = false;
 
-  static const _interval = Duration(seconds: 8);
+  static const _interval = Duration(seconds: 4);
 
   void start() {
     if (_started) return;

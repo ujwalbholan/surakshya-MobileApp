@@ -67,22 +67,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(authProvider.notifier).login(
+      final challenge = await ref.read(authProvider.notifier).attemptLogin(
             email,
             _passwordController.text,
           );
-      if (mounted) {
-        final role = ref.read(authProvider).user?.role ?? 'USER';
-        final route = AppRoutes.homeRouteForRole(role);
-        _statusPresenter.showSuccess(
-          'Login successful',
-          'Welcome back, redirecting…',
-          autoDismiss: authTicketLoginSuccessDelay,
-          onDismissed: () {
-            if (mounted) context.go(route);
-          },
-        );
+      if (!mounted) return;
+      if (challenge != null) {
+        context.go(AppRoutes.guardianActivate, extra: challenge);
+        return;
       }
+      final role = ref.read(authProvider).user?.role ?? 'USER';
+      final route = AppRoutes.homeRouteForRole(role);
+      _statusPresenter.showSuccess(
+        'Login successful',
+        'Welcome back, redirecting…',
+        autoDismiss: authTicketLoginSuccessDelay,
+        onDismissed: () {
+          if (mounted) context.go(route);
+        },
+      );
     } on SurakshyaApiException catch (e) {
       if (mounted) {
         _statusPresenter.showError('Login failed', e.message);

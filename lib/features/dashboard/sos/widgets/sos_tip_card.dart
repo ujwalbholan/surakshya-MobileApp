@@ -35,6 +35,11 @@ class SosTipCard extends StatelessWidget {
           CopyConstants.sosDispatchTitle,
           CopyConstants.sosDispatchBody,
         ),
+      SosPhase.active => (
+          Icons.warning_amber_rounded,
+          CopyConstants.sosActiveTitle,
+          CopyConstants.sosActiveBody,
+        ),
       SosPhase.resolved => (
           Icons.check_circle_outline,
           CopyConstants.sosResolvedTitle,

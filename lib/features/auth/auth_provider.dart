@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:suraksha/core/constants/app_constants.dart';
 import 'package:suraksha/models/user_model.dart';
+import 'package:suraksha/models/guardian_activation_models.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/services/token_storage.dart';
 import 'package:suraksha/theme/suraksha_animations.dart';
@@ -70,10 +71,29 @@ class AuthNotifier extends StateNotifier<AuthData> {
     await prefs.setString('pending_signup_name', name.trim());
   }
 
-  Future<void> login(String email, String password) async {
+  Future<GuardianLoginChallenge?> attemptLogin(
+    String email,
+    String password,
+  ) async {
     await Future<void>.delayed(SurakshaAnimations.authLoad);
-    final session = await _api.login(email, password);
+    final result = await _api.attemptLogin(email, password);
+    if (result.isChallenge) {
+      return result.challenge;
+    }
+    await _persistSession(result.session!);
+    return null;
+  }
 
+  Future<void> login(String email, String password) async {
+    final challenge = await attemptLogin(email, password);
+    if (challenge != null) {
+      throw SurakshyaApiException(
+        challenge.message,
+      );
+    }
+  }
+
+  Future<void> _persistSession(AuthSession session) async {
     const mobileRoles = {'USER', 'GUARDIAN'};
     if (!mobileRoles.contains(session.user.role)) {
       await _api.clearSession();

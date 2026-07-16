@@ -36,6 +36,33 @@ class SosCenterDisplay extends StatelessWidget {
         );
       case SosPhase.dispatching:
         return const _DispatchDots();
+      case SosPhase.active:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: surakshaCrimson.withValues(alpha: 0.2),
+                border: Border.all(color: surakshaCrimson, width: 3),
+              ),
+              child: const Icon(
+                Icons.sos_rounded,
+                size: 48,
+                color: surakshaCrimson,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              CopyConstants.sosActivatedTitle,
+              style: SurakshaTypography.dashTitle.copyWith(
+                color: surakshaForeground,
+              ),
+            ),
+          ],
+        );
       case SosPhase.resolved:
         return Column(
           mainAxisSize: MainAxisSize.min,

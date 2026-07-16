@@ -5,18 +5,25 @@ import 'dart:async';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
-import 'package:suraksha/services/ble_service.dart';
+import 'package:suraksha/services/surakshya_api_service.dart';
 
-/// Keeps dashboard battery + BLE connection status in sync with device APIs.
+/// Keeps dashboard battery + band status in sync.
+///
+/// Band status is MQTT/IoT only for now:
+/// Connected = wearable recently signaled the backend
+/// Disconnected = IoT not running / no recent signal
 class DeviceStatusSync {
   DeviceStatusSync(this._ref);
 
   final Ref _ref;
   final Battery _battery = Battery();
   StreamSubscription<BatteryState>? _batterySub;
-  StreamSubscription<bool>? _bleSub;
   Timer? _batteryPoll;
+  Timer? _bandPoll;
   bool _started = false;
+  bool _bandPollInFlight = false;
+
+  static const _bandPollInterval = Duration(seconds: 10);
 
   Future<void> start() async {
     if (_started) return;
@@ -30,11 +37,26 @@ class DeviceStatusSync {
       unawaited(_refreshBattery());
     });
 
-    final ble = _ref.read(bleServiceProvider);
-    _ref.read(dashboardProvider.notifier).setBandConnected(ble.isConnected);
-    _bleSub = ble.connectionState.listen((connected) {
-      _ref.read(dashboardProvider.notifier).setBandConnected(connected);
+    unawaited(_refreshBandFromBackend());
+    _bandPoll = Timer.periodic(_bandPollInterval, (_) {
+      unawaited(_refreshBandFromBackend());
     });
+  }
+
+  Future<void> _refreshBandFromBackend() async {
+    if (_bandPollInFlight) return;
+    _bandPollInFlight = true;
+    try {
+      final status =
+          await _ref.read(surakshyaApiServiceProvider).fetchMyDeviceStatus();
+      final connected = status != null && status.linked && status.isOnline;
+      _ref.read(dashboardProvider.notifier).setBandConnected(connected);
+    } catch (_) {
+      // On error, treat as disconnected so we don't stick on "Connected".
+      _ref.read(dashboardProvider.notifier).setBandConnected(false);
+    } finally {
+      _bandPollInFlight = false;
+    }
   }
 
   Future<void> _refreshBattery() async {
@@ -48,8 +70,8 @@ class DeviceStatusSync {
 
   void dispose() {
     _batterySub?.cancel();
-    _bleSub?.cancel();
     _batteryPoll?.cancel();
+    _bandPoll?.cancel();
   }
 }
 

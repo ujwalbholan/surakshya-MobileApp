@@ -67,7 +67,8 @@ class _SosContactOrbitState extends State<SosContactOrbit>
             clipBehavior: Clip.none,
             children: List.generate(emergency.length, (i) {
               final contact = emergency[i];
-              final sent = widget.phase == SosPhase.dispatching &&
+              final sent = (widget.phase == SosPhase.dispatching ||
+                      widget.phase == SosPhase.active) &&
                   i <= widget.dispatchIndex;
 
               Offset pos;
@@ -80,7 +81,8 @@ class _SosContactOrbitState extends State<SosContactOrbit>
                   center.dy +
                       math.sin(angle) * AppConstants.sosOrbitRadiusY,
                 );
-              } else if (widget.phase == SosPhase.dispatching) {
+              } else if (widget.phase == SosPhase.dispatching ||
+                  widget.phase == SosPhase.active) {
                 final angle = -math.pi * 0.75 + (i * math.pi * 0.35);
                 pos = Offset(
                   center.dx + math.cos(angle) * 110,

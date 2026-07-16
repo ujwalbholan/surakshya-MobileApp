@@ -5,10 +5,16 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:suraksha/core/constants/app_constants.dart';
+import 'package:suraksha/models/active_sos_summary.dart';
+import 'package:suraksha/models/band_device_status.dart';
+import 'package:suraksha/models/guardian_activation_models.dart';
 import 'package:suraksha/models/guardian_models.dart';
 import 'package:suraksha/models/parent_models.dart';
 import 'package:suraksha/models/user_model.dart';
 import 'package:suraksha/services/token_storage.dart';
+
+export 'package:suraksha/models/active_sos_summary.dart';
+export 'package:suraksha/models/band_device_status.dart';
 
 class SurakshyaApiException implements Exception {
   SurakshyaApiException(this.message, {this.statusCode});
@@ -29,6 +35,24 @@ class AuthSession {
   final UserModel user;
   final String accessToken;
   final String refreshToken;
+
+  String get role => user.role;
+  String get email => user.email;
+}
+
+class LoginAttemptResult {
+  const LoginAttemptResult._({this.session, this.challenge});
+
+  final AuthSession? session;
+  final GuardianLoginChallenge? challenge;
+
+  bool get isChallenge => challenge != null;
+
+  factory LoginAttemptResult.session(AuthSession session) =>
+      LoginAttemptResult._(session: session);
+
+  factory LoginAttemptResult.challenge(GuardianLoginChallenge challenge) =>
+      LoginAttemptResult._(challenge: challenge);
 }
 
 class SurakshyaApiService {
@@ -43,7 +67,7 @@ class SurakshyaApiService {
 
   String get _base => AppConstants.surakshyaBaseUrl;
 
-  Future<AuthSession> login(String email, String password) async {
+  Future<LoginAttemptResult> attemptLogin(String email, String password) async {
     final response = await _client.post(
       Uri.parse('$_base/auth/login'),
       headers: {'Content-Type': 'application/json'},
@@ -56,6 +80,30 @@ class SurakshyaApiService {
         statusCode: response.statusCode,
       );
     }
+
+    final requiresPasswordChange =
+        data['requiresPasswordChange'] == true;
+    final requiresActivationOtp =
+        data['requiresActivationOtp'] == true;
+    if (requiresPasswordChange || requiresActivationOtp) {
+      final challengeToken = data['challengeToken'] as String? ?? '';
+      if (challengeToken.isEmpty) {
+        throw SurakshyaApiException(
+          'Guardian activation could not be started. Try again.',
+        );
+      }
+      return LoginAttemptResult.challenge(
+        GuardianLoginChallenge(
+          email: email.trim(),
+          challengeToken: challengeToken,
+          message: data['message'] as String? ??
+              'Complete guardian activation to continue.',
+          requiresPasswordChange: requiresPasswordChange,
+          requiresActivationOtp: requiresActivationOtp,
+        ),
+      );
+    }
+
     final userJson = data['user'] as Map<String, dynamic>? ?? {};
     final accessToken = data['accessToken'] as String? ?? '';
     final refreshToken = data['refreshToken'] as String? ?? '';
@@ -66,11 +114,90 @@ class SurakshyaApiService {
       accessToken: accessToken,
       refreshToken: refreshToken,
     );
-    return AuthSession(
-      user: UserModel.fromSurakshyaJson(userJson),
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+    final user = UserModel.fromSurakshyaJson(userJson);
+    return LoginAttemptResult.session(
+      AuthSession(
+        user: user,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      ),
     );
+  }
+
+  Future<AuthSession> login(String email, String password) async {
+    final result = await attemptLogin(email, password);
+    if (result.isChallenge) {
+      throw SurakshyaApiException(
+        result.challenge?.message ??
+            'Complete guardian activation before signing in.',
+      );
+    }
+    return result.session!;
+  }
+
+  Future<GuardianOtpVerifyResult> guardianActivationVerifyOtp({
+    required String challengeToken,
+    required String otp,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/activation/verify-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'challengeToken': challengeToken,
+        'otp': otp.trim(),
+      }),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'OTP verification failed',
+        statusCode: response.statusCode,
+      );
+    }
+    return GuardianOtpVerifyResult(
+      message: data['message'] as String? ?? 'OTP verified.',
+      requiresPasswordChange: data['requiresPasswordChange'] == true,
+    );
+  }
+
+  Future<String> guardianActivationSetPassword({
+    required String challengeToken,
+    required String newPassword,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/activation/set-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'challengeToken': challengeToken,
+        'newPassword': newPassword,
+      }),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Could not update password',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ??
+        'Password updated. You can now sign in.';
+  }
+
+  Future<String> guardianActivationResendOtp(String challengeToken) async {
+    final response = await _client.post(
+      Uri.parse('$_base/guardian/activation/resend-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'challengeToken': challengeToken}),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Could not resend OTP',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ??
+        'A new verification code was sent.';
   }
 
   Future<void> register({
@@ -460,6 +587,46 @@ class SurakshyaApiService {
     return id;
   }
 
+  /// GET /sos/active — active SOS for the signed-in citizen (band or app).
+  Future<ActiveSosSummary?> fetchActiveSos() async {
+    final headers = await _authHeaders();
+    final response = await _client.get(
+      Uri.parse('$_base/sos/active'),
+      headers: headers,
+    );
+    if (response.statusCode == 204 || response.body.trim().isEmpty) {
+      return null;
+    }
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to load active SOS',
+        statusCode: response.statusCode,
+      );
+    }
+    if (data.isEmpty || data['id'] == null) {
+      return null;
+    }
+    return ActiveSosSummary.fromJson(data);
+  }
+
+  /// POST /sos/:id/cancel — resolve SOS and tell the wearable to stop.
+  Future<void> cancelSos(String sosId) async {
+    final headers = await _authHeaders();
+    final response = await _client.post(
+      Uri.parse('$_base/sos/$sosId/cancel'),
+      headers: headers,
+      body: jsonEncode({}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final data = _decode(response);
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to cancel SOS',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
   /// POST /sos/:id/location — live GPS while SOS is active.
   Future<void> pushSosLocation({
     required String sosId,
@@ -482,6 +649,24 @@ class SurakshyaApiService {
         statusCode: response.statusCode,
       );
     }
+  }
+
+  /// GET /device/mine — linked wearable online status (MQTT / backend).
+  Future<BandDeviceStatus?> fetchMyDeviceStatus() async {
+    final headers = await _authHeaders();
+    final response = await _client.get(
+      Uri.parse('$_base/device/mine'),
+      headers: headers,
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to load band status',
+        statusCode: response.statusCode,
+      );
+    }
+    if (data.isEmpty) return null;
+    return BandDeviceStatus.fromJson(data);
   }
 
   Future<void> clearSession() => _tokenStorage.clearTokens();

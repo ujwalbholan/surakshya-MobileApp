@@ -21,8 +21,9 @@ class DashboardBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sosActive =
-        sosPhase == SosPhase.counting || sosPhase == SosPhase.dispatching;
+    final sosActive = sosPhase == SosPhase.counting ||
+        sosPhase == SosPhase.dispatching ||
+        sosPhase == SosPhase.active;
     final navColor = sosActive
         ? Color.lerp(surakshaNavBg, surakshaCrimsonFaint, 0.3)!
         : surakshaNavBg;

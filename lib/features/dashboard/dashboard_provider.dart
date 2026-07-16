@@ -6,7 +6,7 @@ import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/models/contact_model.dart';
 import 'package:suraksha/models/location_model.dart';
 
-enum SosPhase { idle, counting, dispatching, resolved }
+enum SosPhase { idle, counting, dispatching, active, resolved }
 
 enum DashboardTab { tracking, sos, profile }
 
@@ -187,6 +187,14 @@ class DashboardNotifier extends StateNotifier<DashboardStateData> {
       );
 
   void setActiveSosId(String id) => state = state.copyWith(activeSosId: id);
+
+  /// Mirror an SOS that was started on the IoT band / server.
+  void markSosActive({required String sosId}) => state = state.copyWith(
+        sosPhase: SosPhase.active,
+        safetyStatus: SafetyStatus.sosActive,
+        currentTab: DashboardTab.sos,
+        activeSosId: sosId,
+      );
 
   void resolveSos() => state = state.copyWith(
         sosPhase: SosPhase.resolved,

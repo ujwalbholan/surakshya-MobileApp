@@ -41,6 +41,7 @@ class _SosTabState extends ConsumerState<SosTab> {
   Timer? _locationPushTimer;
   StreamSubscription<void>? _bandSub;
   int _dispatchIndex = -1;
+  bool _cancelling = false;
 
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _SosTabState extends ConsumerState<SosTab> {
   void dispose() {
     _countdownTimer?.cancel();
     _resetTimer?.cancel();
-    _locationPushTimer?.cancel();
+    _stopLocationPush();
     _bandSub?.cancel();
     super.dispose();
   }
@@ -157,8 +158,13 @@ class _SosTabState extends ConsumerState<SosTab> {
     }
   }
 
-  void _startLocationPushLoop(String sosId) {
+  void _stopLocationPush() {
     _locationPushTimer?.cancel();
+    _locationPushTimer = null;
+  }
+
+  void _startLocationPushLoop(String sosId) {
+    _stopLocationPush();
     _pushLocationOnce(sosId);
     _locationPushTimer = Timer.periodic(
       const Duration(seconds: AppConstants.locationPushIntervalSeconds),
@@ -168,7 +174,7 @@ class _SosTabState extends ConsumerState<SosTab> {
 
   void _pushLocationOnce(String sosId) {
     final dash = ref.read(dashboardProvider);
-    if (dash.sosPhase == SosPhase.idle) {
+    if (dash.sosPhase == SosPhase.idle || dash.sosPhase == SosPhase.resolved) {
       _locationPushTimer?.cancel();
       return;
     }
@@ -191,36 +197,85 @@ class _SosTabState extends ConsumerState<SosTab> {
     for (var i = 0; i < contacts.length; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       if (!mounted) return;
+      if (ref.read(dashboardProvider).sosPhase != SosPhase.dispatching) return;
       setState(() => _dispatchIndex = i);
     }
     await Future<void>.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
-    await ref.read(notificationServiceProvider).cancelSosNotification();
     await ref.read(notificationServiceProvider).showSosSent();
     Future.microtask(() {
-      ref.read(dashboardProvider.notifier).resolveSos();
-      _scheduleReset();
+      final dash = ref.read(dashboardProvider);
+      final sosId = dash.activeSosId;
+      if (sosId != null && sosId.isNotEmpty) {
+        ref.read(dashboardProvider.notifier).markSosActive(sosId: sosId);
+      } else {
+        // Create failed — treat as cancelled locally.
+        ref.read(dashboardProvider.notifier).resolveSos();
+        _scheduleReset();
+      }
     });
   }
 
-  void _cancelSos() {
+  Future<void> _cancelSos() async {
+    if (_cancelling) return;
+    _cancelling = true;
     _countdownTimer?.cancel();
-    _locationPushTimer?.cancel();
-    ref.read(notificationServiceProvider).cancelSosNotification();
+    _stopLocationPush();
+    await ref.read(notificationServiceProvider).cancelSosNotification();
+
+    final sosId = ref.read(dashboardProvider).activeSosId;
+    final phase = ref.read(dashboardProvider).sosPhase;
+
+    // Countdown only — nothing was sent to the backend yet.
+    if (phase == SosPhase.counting || sosId == null || sosId.isEmpty) {
+      if (!mounted) return;
+      Future.microtask(() {
+        ref.read(dashboardProvider.notifier).resolveSos();
+        _scheduleReset();
+      });
+      _cancelling = false;
+      return;
+    }
+
+    try {
+      await ref.read(surakshyaApiServiceProvider).cancelSos(sosId);
+    } on SurakshyaApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+      _cancelling = false;
+      return;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not cancel SOS. Try again.')),
+        );
+      }
+      _cancelling = false;
+      return;
+    }
+
+    if (!mounted) return;
     Future.microtask(() {
       ref.read(dashboardProvider.notifier).resolveSos();
       _scheduleReset();
     });
+    _cancelling = false;
   }
 
   void _scheduleReset() {
     _resetTimer?.cancel();
     _resetTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
-      _locationPushTimer?.cancel();
+      _stopLocationPush();
       Future.microtask(() {
         ref.read(dashboardProvider.notifier).resetSos();
-        setState(() => _dispatchIndex = -1);
+        setState(() {
+          _dispatchIndex = -1;
+          _cancelling = false;
+        });
       });
     });
   }
@@ -234,10 +289,34 @@ class _SosTabState extends ConsumerState<SosTab> {
     final state = ref.watch(dashboardProvider);
     final bottomPad = S.bottomNavHeight + MediaQuery.paddingOf(context).bottom;
 
+    // Keep contact checkmarks filled when mirroring a live band SOS.
+    ref.listen<DashboardStateData>(dashboardProvider, (prev, next) {
+      if (next.sosPhase == SosPhase.active &&
+          prev?.sosPhase != SosPhase.active &&
+          _dispatchIndex < 2) {
+        setState(() => _dispatchIndex = 2);
+      }
+      if (next.sosPhase == SosPhase.active &&
+          next.activeSosId != null &&
+          next.activeSosId != prev?.activeSosId &&
+          _locationPushTimer == null) {
+        _startLocationPushLoop(next.activeSosId!);
+      }
+    });
+
     if (state.sosPhase == SosPhase.counting) {
       return _CountingLayout(
         seconds: state.sosCountdownSeconds,
         contacts: state.contacts,
+        bottomPad: bottomPad,
+        onCancelled: _cancelSos,
+      );
+    }
+
+    if (state.sosPhase == SosPhase.active) {
+      return _ActiveLayout(
+        contacts: state.contacts,
+        dispatchIndex: _dispatchIndex,
         bottomPad: bottomPad,
         onCancelled: _cancelSos,
       );
@@ -335,6 +414,61 @@ class _CountingLayout extends StatelessWidget {
                 ),
               ),
               SosTextSection(seconds: seconds),
+              SosSwipeCancelBar(onCancelled: onCancelled),
+              SizedBox(height: bottomPad + 16),
+            ],
+          ),
+        ),
+      );
+}
+
+class _ActiveLayout extends StatelessWidget {
+  const _ActiveLayout({
+    required this.contacts,
+    required this.dispatchIndex,
+    required this.bottomPad,
+    required this.onCancelled,
+  });
+
+  final List<ContactModel> contacts;
+  final int dispatchIndex;
+  final double bottomPad;
+  final VoidCallback onCancelled;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: surakshaCard,
+        appBar: const SosAppBar(backEnabled: false),
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: S.md),
+              const SosTipCard(phase: SosPhase.active),
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Positioned.fill(child: SosRadarRings()),
+                    SizedBox(
+                      height: 320,
+                      child: SosContactOrbit(
+                        phase: SosPhase.active,
+                        contacts: contacts,
+                        dispatchIndex: dispatchIndex < 0 ? 2 : dispatchIndex,
+                      ),
+                    ),
+                    SosCenterDisplay(
+                      phase: SosPhase.active,
+                      seconds: 0,
+                      totalSeconds: AppConstants.sosCountdownSeconds,
+                      onBandDoubleTap: () {},
+                      onCancelTap: () {},
+                    ),
+                  ],
+                ),
+              ),
               SosSwipeCancelBar(onCancelled: onCancelled),
               SizedBox(height: bottomPad + 16),
             ],

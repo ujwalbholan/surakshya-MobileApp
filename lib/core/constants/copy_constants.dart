@@ -39,9 +39,12 @@ class CopyConstants {
   static const String sosDispatchTitle = 'Sending SOS';
   static const String sosDispatchBody =
       'Contacting your emergency circle. Your location is being shared.';
-  static const String sosResolvedTitle = 'SOS cancelled';
+  static const String sosActiveTitle = 'SOS is live';
+  static const String sosActiveBody =
+      'Your band and phone are sharing live location. Swipe to cancel the alert.';
+  static const String sosResolvedTitle = 'SOS stopped';
   static const String sosResolvedBody =
-      'Your emergency circle was not alerted. You are safe.';
+      'The alert was cancelled. Live tracking has stopped.';
   static const String sosAwaitBandTitle = 'Double-tap your Suraksha band';
   static const String sosAwaitBandBody =
       'Quickly tap the SOS sensor on your wristband twice to begin the emergency countdown.';

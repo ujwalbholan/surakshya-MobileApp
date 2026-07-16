@@ -9,14 +9,16 @@ import 'package:suraksha/core/constants/app_constants.dart';
 import 'package:suraksha/features/auth/login_screen.dart';
 import 'package:suraksha/features/auth/signup_screen.dart';
 import 'package:suraksha/features/dashboard/dashboard_shell.dart';
+import 'package:suraksha/features/guardians/guardian_activate_screen.dart';
 import 'package:suraksha/features/guardians/guardians_screen.dart';
 import 'package:suraksha/features/guardians/guardian_setup_screen.dart';
+import 'package:suraksha/models/guardian_activation_models.dart';
 import 'package:suraksha/features/home/home_screen.dart';
 import 'package:suraksha/features/notifications/notifications_screen.dart';
 import 'package:suraksha/features/onboarding/onboarding_screen.dart';
 import 'package:suraksha/features/parent/parent_shell.dart';
-import 'package:suraksha/features/splash/surakshya_reveal_splash_screen.dart';
 import 'package:suraksha/features/splash/splash_screen2.dart';
+import 'package:suraksha/features/splash/surakshya_reveal_splash_screen.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
@@ -60,6 +62,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           transitionsBuilder: (context, animation, secondary, child) =>
               FadeTransition(opacity: animation, child: child),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.guardianActivate,
+        pageBuilder: (context, state) {
+          final challenge = state.extra;
+          if (challenge is! GuardianLoginChallenge) {
+            return CustomTransitionPage<void>(
+              child: const LoginScreen(),
+              transitionsBuilder: (context, animation, secondary, child) =>
+                  FadeTransition(opacity: animation, child: child),
+            );
+          }
+          return CustomTransitionPage<void>(
+            child: GuardianActivateScreen(challenge: challenge),
+            transitionsBuilder: (context, animation, secondary, child) =>
+                FadeTransition(opacity: animation, child: child),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.guardianSetup,
