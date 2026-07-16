@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 const Color surakshaBlack = Color(0xFF000000);
 const Color surakshaDarkSurface = Color(0xFF0A0A0A);
 
-/// Reveal splash illuminate palette (background = [surakshaBlack], accent = [surakshaCrimson]).
+/// Reveal splash illuminate palette (background = [surakshaBlack], accent = [surakshyaCrimson]).
 const Color kSplashTextDim = Color(0xFF4A4A4A);
 const Color kSplashTextBright = Color(0xFFF5F5F5);
 const Color kSplashCounterGray = Color(0xFF6B6B6B);
@@ -16,7 +16,11 @@ const Color surakshaBorder = Color(0xFF222222);
 const Color surakshaMuted = Color(0xFF888888);
 const Color surakshaForeground = Color(0xFFFFFFFF);
 
-const Color surakshaCrimson = Color(0xFFC0392B);
+/// Brand crimson accent (product spelling: Surakshya).
+const Color surakshyaCrimson = Color(0xFFC0392B);
+
+/// Alias for [surakshyaCrimson] — prefer [surakshyaCrimson] in new code.
+const Color surakshaCrimson = surakshyaCrimson;
 const Color surakshaCrimsonLight = Color(0xFFE74C3C);
 const Color surakshaCrimsonDark = Color(0xFF96281B);
 const Color surakshaCrimsonCard = Color(0x59C0392B);

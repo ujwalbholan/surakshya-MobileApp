@@ -17,12 +17,13 @@ const double _hoverUnderlineThickness = 1.25;
 const double _hoverUnderlineGap = 2;
 const Duration _hoverUnderlineDuration = Duration(milliseconds: 120);
 
-TextStyle authFooterLinkStyle() => GoogleFonts.inter(
+TextStyle authFooterLinkStyle({Color color = authFooterLinkColor}) =>
+    GoogleFonts.inter(
       fontSize: _footerLinkFontSize,
       fontWeight: FontWeight.w500,
       letterSpacing: 0.1,
       height: 1.3,
-      color: authFooterLinkColor,
+      color: color,
       decoration: TextDecoration.none,
     );
 
@@ -37,14 +38,18 @@ class AuthFooterLink extends StatefulWidget {
     required this.label,
     required this.onPressed,
     this.revealUnderlineOnMount = false,
+    this.color = authFooterLinkColor,
   });
 
   final String label;
   final VoidCallback onPressed;
 
-  /// One-shot L→R width reveal (Create account on Sign In). Default off so
-  /// Signup / Guardian links keep hover-only underlines.
+  /// One-shot L→R width reveal (Sign In register link). Default off so
+  /// Signup links keep hover-only underlines.
   final bool revealUnderlineOnMount;
+
+  /// Link text (and hover underline) color. Defaults to [authFooterLinkColor].
+  final Color color;
 
   @override
   State<AuthFooterLink> createState() => _AuthFooterLinkState();
@@ -62,7 +67,10 @@ class _AuthFooterLinkState extends State<AuthFooterLink>
 
   double get _labelWidth {
     final painter = TextPainter(
-      text: TextSpan(text: widget.label, style: authFooterLinkStyle()),
+      text: TextSpan(
+        text: widget.label,
+        style: authFooterLinkStyle(color: widget.color),
+      ),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
@@ -138,7 +146,7 @@ class _AuthFooterLinkState extends State<AuthFooterLink>
         duration: _hoverUnderlineDuration,
         curve: Curves.easeOut,
         height: _hoverUnderlineThickness,
-        color: _showHoverUnderline ? authFooterLinkColor : Colors.transparent,
+        color: _showHoverUnderline ? widget.color : Colors.transparent,
       ),
     );
   }
@@ -168,7 +176,7 @@ class _AuthFooterLinkState extends State<AuthFooterLink>
                 Text(
                   widget.label,
                   textAlign: TextAlign.center,
-                  style: authFooterLinkStyle(),
+                  style: authFooterLinkStyle(color: widget.color),
                 ),
                 SizedBox(
                   height: reveal ? kRegisterUnderlineGap : _hoverUnderlineGap,

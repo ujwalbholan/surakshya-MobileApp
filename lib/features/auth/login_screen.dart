@@ -139,7 +139,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.shield_outlined, color: surakshaCrimson, size: 48),
+            const Icon(Icons.shield_outlined, color: surakshyaCrimson, size: 48),
             const SizedBox(height: S.lg),
             Text(
               'THE SURAKSHA',
@@ -217,7 +217,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: authFooterLinkTopGap),
                 AuthFooterLink(
-                  label: 'Create account',
+                  label: 'Not a member yet? Register now',
+                  color: surakshyaCrimson,
                   revealUnderlineOnMount: true,
                   onPressed: () => context.go(AppRoutes.signup),
                 ),

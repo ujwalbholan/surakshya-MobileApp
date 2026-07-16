@@ -11,8 +11,8 @@ const double kFieldUnderlineIdleOpacity = 0.35;
 Color get kFieldUnderlineIdle =>
     surakshaBorder.withValues(alpha: kFieldUnderlineIdleOpacity);
 
-/// Focused hairline — reuses [surakshaCrimson].
-const Color kFieldUnderlineFocused = surakshaCrimson;
+/// Focused hairline — reuses [surakshyaCrimson].
+const Color kFieldUnderlineFocused = surakshyaCrimson;
 
 const double kFieldUnderlineWidth = 1.0;
 
