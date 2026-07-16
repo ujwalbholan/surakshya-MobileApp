@@ -11,8 +11,8 @@ import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 
-/// Cold-start text-reveal splash (Option A): illuminates [CopyConstants.appName],
-/// then Welcome → [AppRoutes.splash2]. Cinematic SplashScreen2 is unchanged.
+/// Cold-start text-reveal splash (Option A): illuminates [CopyConstants.appName]
+/// left → right, then Welcome → [AppRoutes.splash2].
 class SurakshyaRevealSplashScreen extends StatefulWidget {
   const SurakshyaRevealSplashScreen({super.key});
 
@@ -26,7 +26,6 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   static const kRevealDuration = Duration(milliseconds: 2500);
   static const kButtonDelay = Duration(milliseconds: 350);
   static const kButtonFadeDuration = Duration(milliseconds: 500);
-  static const kCounterMax = 100;
   static const kRevealCurve = Curves.easeInOut;
   static const kButtonFadeCurve = Curves.easeIn;
 
@@ -34,8 +33,6 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   static const kWordmarkSizePhone = 52.0;
   static const kWordmarkSizeTablet = 72.0;
   static const kNarrowWidth = 360.0;
-  static const kCounterFontSize = 13.0;
-  static const kCounterInset = 24.0;
   static const kButtonRadius = 24.0;
   static const kButtonHorizontalPadding = 36.0;
   static const kButtonVerticalPadding = 14.0;
@@ -51,7 +48,6 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   late final AnimationController _buttonController;
   late final CurvedAnimation _revealCurved;
   late final CurvedAnimation _buttonCurved;
-  late final Animation<Color?> _textColor;
 
   Timer? _buttonDelayTimer;
   bool _navigating = false;
@@ -77,10 +73,6 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
       parent: _buttonController,
       curve: kButtonFadeCurve,
     );
-    _textColor = ColorTween(
-      begin: kSplashTextDim,
-      end: kSplashTextBright,
-    ).animate(_revealCurved);
 
     _revealController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -159,79 +151,90 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
           child: ColoredBox(
             color: surakshaBlack,
             child: SafeArea(
-              child: Stack(
-                children: [
-                  Center(
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge([
-                        _revealController,
-                        _buttonController,
-                      ]),
-                      builder: (context, _) {
-                        final color = _textColor.value ?? kSplashTextBright;
-                        final wordmarkSize = _wordmarkSize(context);
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Semantics(
-                              label: CopyConstants.appName,
-                              child: Text(
-                                CopyConstants.appName,
-                                textAlign: TextAlign.center,
-                                style:
-                                    SurakshaTypography.playfairBrand.copyWith(
-                                  fontSize: wordmarkSize,
-                                  color: color,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: kAccentUnderlineGap),
-                            Opacity(
-                              opacity: _revealCurved.value,
-                              child: const SizedBox(
-                                width: kAccentUnderlineWidth,
-                                height: kAccentUnderlineHeight,
-                                child: ColoredBox(color: surakshaCrimson),
-                              ),
-                            ),
-                            const SizedBox(height: kWordmarkButtonGap),
-                            FadeTransition(
-                              opacity: _buttonCurved,
-                              child: IgnorePointer(
-                                ignoring: !_sequenceFullyComplete,
-                                child: _WelcomePillButton(
-                                  onPressed: _onWelcomeTap,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  Positioned(
-                    right: kCounterInset,
-                    bottom: kCounterInset,
-                    child: AnimatedBuilder(
-                      animation: _revealCurved,
-                      builder: (context, _) {
-                        final count =
-                            (_revealCurved.value * kCounterMax).round();
-                        return Semantics(
-                          label: 'Loading progress',
-                          value: '$count${CopyConstants.splashPercent}',
-                          child: Text(
-                            '$count${CopyConstants.splashPercent}',
-                            style: SurakshaTypography.dmMonoBase.copyWith(
-                              fontSize: kCounterFontSize,
-                              color: kSplashCounterGray,
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    _revealController,
+                    _buttonController,
+                  ]),
+                  builder: (context, _) {
+                    final progress = _revealCurved.value.clamp(0.0, 1.0);
+                    final wordmarkSize = _wordmarkSize(context);
+                    final wordmarkStyle =
+                        SurakshaTypography.playfairBrand.copyWith(
+                      fontSize: wordmarkSize,
+                      color: kSplashTextBright,
+                    );
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Semantics(
+                          label: CopyConstants.appName,
+                          child: ShaderMask(
+                            blendMode: BlendMode.dstIn,
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: const [
+                                  Colors.white,
+                                  Colors.white,
+                                  Colors.transparent,
+                                ],
+                                stops: [
+                                  0.0,
+                                  progress,
+                                  progress,
+                                ],
+                              ).createShader(bounds);
+                            },
+                            child: Text(
+                              CopyConstants.appName,
+                              textAlign: TextAlign.center,
+                              softWrap: false,
+                              style: wordmarkStyle,
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                        ),
+                        const SizedBox(height: kAccentUnderlineGap),
+                        SizedBox(
+                          width: kAccentUnderlineWidth,
+                          height: kAccentUnderlineHeight,
+                          child: ShaderMask(
+                            blendMode: BlendMode.dstIn,
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: const [
+                                  Colors.white,
+                                  Colors.white,
+                                  Colors.transparent,
+                                ],
+                                stops: [
+                                  0.0,
+                                  progress,
+                                  progress,
+                                ],
+                              ).createShader(bounds);
+                            },
+                            child: const ColoredBox(color: surakshaCrimson),
+                          ),
+                        ),
+                        const SizedBox(height: kWordmarkButtonGap),
+                        FadeTransition(
+                          opacity: _buttonCurved,
+                          child: IgnorePointer(
+                            ignoring: !_sequenceFullyComplete,
+                            child: _WelcomePillButton(
+                              onPressed: _onWelcomeTap,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
