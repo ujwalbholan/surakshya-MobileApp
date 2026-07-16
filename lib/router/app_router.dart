@@ -12,6 +12,7 @@ import 'package:suraksha/features/dashboard/dashboard_shell.dart';
 import 'package:suraksha/features/guardians/guardians_screen.dart';
 import 'package:suraksha/features/guardians/guardian_setup_screen.dart';
 import 'package:suraksha/features/home/home_screen.dart';
+import 'package:suraksha/features/notifications/notifications_screen.dart';
 import 'package:suraksha/features/onboarding/onboarding_screen.dart';
 import 'package:suraksha/features/parent/parent_shell.dart';
 import 'package:suraksha/features/splash/splash_screen1.dart';
@@ -124,6 +125,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           child: const GuardiansScreen(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        redirect: (context, state) async {
+          final prefs = await SharedPreferences.getInstance();
+          final loggedIn = prefs.getBool(AppConstants.prefsLoggedIn) ?? false;
+          if (!loggedIn) return AppRoutes.login;
+          return null;
+        },
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const NotificationsScreen(),
           transitionsBuilder: (context, animation, secondary, child) =>
               FadeTransition(opacity: animation, child: child),
         ),

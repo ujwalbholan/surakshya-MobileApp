@@ -13,6 +13,7 @@ class AppRoutes {
   static const String parent = '/parent';
   static const String profile = '/profile';
   static const String guardians = '/guardians';
+  static const String notifications = '/notifications';
   static const String guardianSetup = '/guardian/setup';
 
   /// Home route after login or splash for the given account role.
