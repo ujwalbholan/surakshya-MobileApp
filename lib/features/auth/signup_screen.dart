@@ -266,7 +266,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 child: OriginButton(
                                   onPressed: _submit,
                                   loading: _isLoading,
-                                  child: const Text('Create Account'),
+                                  child: const Text('Register Account'),
                                 ),
                               ),
                               const SizedBox(height: authFooterLinkTopGap),

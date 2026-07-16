@@ -70,7 +70,7 @@ class CopyConstants {
 
   static const String loginTitle = 'Log In';
   static const String loginSubtitle = 'Welcome back';
-  static const String signupTitle = 'Create account';
+  static const String signupTitle = 'Register Account';
   static const String signupSubtitle = 'Join Suraksha today';
   static const String signupSuccess =
       'Account created. Please sign in to continue.';
