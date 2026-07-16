@@ -6,7 +6,7 @@ import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 
-/// Horizontal / vertical gap between guardian cards in the two-column grid.
+/// Horizontal / vertical gap between guardian cards in the masonry grid.
 const double kGuardianGridGap = S.sm;
 
 class FamilyMemberTile extends StatelessWidget {

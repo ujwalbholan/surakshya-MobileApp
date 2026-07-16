@@ -6,12 +6,11 @@ import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
 import 'package:suraksha/features/dashboard/tracking/widgets/dark_map_widget.dart';
 import 'package:suraksha/features/dashboard/tracking/widgets/family_header_bar.dart';
-import 'package:suraksha/features/dashboard/tracking/widgets/family_member_tile.dart';
+import 'package:suraksha/features/dashboard/tracking/widgets/guardians_masonry_grid.dart';
 import 'package:suraksha/features/dashboard/tracking/widgets/map_location_sharing_banner.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
-import 'package:suraksha/widgets/animations/stagger_list_animator.dart';
 
 class TrackingTab extends ConsumerStatefulWidget {
   const TrackingTab({super.key});
@@ -106,45 +105,7 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
                       ),
                     )
                   else
-                    StaggerListAnimator(
-                      itemCount: (family.length + 1) ~/ 2,
-                      itemBuilder: (context, rowIndex, anim) {
-                        final leftIndex = rowIndex * 2;
-                        final rightIndex = leftIndex + 1;
-                        return FadeTransition(
-                          opacity: anim,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.06),
-                              end: Offset.zero,
-                            ).animate(anim),
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: kGuardianGridGap,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: FamilyMemberTile(
-                                      member: family[leftIndex],
-                                    ),
-                                  ),
-                                  const SizedBox(width: kGuardianGridGap),
-                                  Expanded(
-                                    child: rightIndex < family.length
-                                        ? FamilyMemberTile(
-                                            member: family[rightIndex],
-                                          )
-                                        : const SizedBox.shrink(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    GuardiansMasonryGrid(members: family),
                 ],
               ),
             ),
