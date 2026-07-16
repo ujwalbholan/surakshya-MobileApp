@@ -38,7 +38,6 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   static const kButtonHorizontalPadding = 36.0;
   static const kButtonVerticalPadding = 14.0;
   static const kWordmarkButtonGap = 48.0;
-  static const kAccentUnderlineWidth = 40.0;
   static const kAccentUnderlineHeight = 1.5;
   static const kAccentUnderlineGap = 18.0;
   static const kButtonBorderWidth = 1.0;
@@ -166,6 +165,17 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
                       fontSize: wordmarkSize,
                       color: kSplashTextBright,
                     );
+                    final wordmarkWidth = () {
+                      final painter = TextPainter(
+                        text: TextSpan(
+                          text: CopyConstants.appName,
+                          style: wordmarkStyle,
+                        ),
+                        textDirection: TextDirection.ltr,
+                        maxLines: 1,
+                      )..layout();
+                      return painter.width;
+                    }();
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -199,7 +209,7 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
                         ),
                         const SizedBox(height: kAccentUnderlineGap),
                         SizedBox(
-                          width: kAccentUnderlineWidth,
+                          width: wordmarkWidth,
                           height: kAccentUnderlineHeight,
                           child: ShaderMask(
                             blendMode: BlendMode.dstIn,
