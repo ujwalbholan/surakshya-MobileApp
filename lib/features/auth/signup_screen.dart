@@ -1,17 +1,19 @@
 library signup_screen;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
-import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
 import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
+import 'package:suraksha/features/auth/widgets/auth_register_prompt.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
+import 'package:suraksha/features/auth/widgets/auth_underline_field_style.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -30,7 +32,7 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailLocalController = TextEditingController();
-  final _phoneController = TextEditingController(text: '98');
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   String _emailDomain = EmailDomains.defaultSelected;
   final _confirmPasswordController = TextEditingController();
@@ -74,10 +76,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return;
     }
 
-    if (phone.length < 10) {
+    if (phone.length != 10) {
       _statusPresenter.showError(
         'Invalid phone',
-        'Please enter a valid phone number',
+        'Please enter a 10-digit phone number',
       );
       return;
     }
@@ -177,43 +179,56 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               Text(CopyConstants.signupSubtitle,
                                   style: SurakshaTypography.monoLabel),
                               const SizedBox(height: S.xl2),
+                              const AuthFieldLabel('NAME'),
+                              const SizedBox(height: kFieldLabelGap),
                               TextField(
                                 controller: _nameController,
+                                keyboardType: TextInputType.name,
+                                autocorrect: false,
                                 style: const TextStyle(color: surakshaAuthText),
-                                decoration:
-                                    authFieldDecoration(labelText: 'NAME'),
+                                cursorColor: kFieldUnderlineFocused,
+                                decoration: authUnderlineFieldDecoration(),
                               ),
                               const SizedBox(height: S.lg),
+                              const AuthFieldLabel('EMAIL USERNAME'),
+                              const SizedBox(height: kFieldLabelGap),
                               SurakshaEmailInput(
                                 localPartController: _emailLocalController,
                                 initialDomain: _emailDomain,
                                 placeholder: 'EMAIL USERNAME',
                                 textInputAction: TextInputAction.next,
+                                style: SurakshaEmailInputStyle.underline,
                                 onDomainChanged: (domain) =>
                                     setState(() => _emailDomain = domain),
                               ),
                               const SizedBox(height: S.lg),
+                              const AuthFieldLabel('PHONE'),
+                              const SizedBox(height: kFieldLabelGap),
                               TextField(
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
                                 style: const TextStyle(color: surakshaAuthText),
-                                decoration: authFieldDecoration(
-                                  labelText: 'PHONE',
-                                  hintText: '98XXXXXXXX',
-                                ),
+                                cursorColor: kFieldUnderlineFocused,
+                                decoration: authUnderlineFieldDecoration(),
                               ),
                               const SizedBox(height: S.lg),
+                              const AuthFieldLabel('PASSWORD'),
+                              const SizedBox(height: kFieldLabelGap),
                               TextField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 style: const TextStyle(color: surakshaAuthText),
-                                decoration: authFieldDecoration(
-                                  labelText: 'PASSWORD',
+                                cursorColor: kFieldUnderlineFocused,
+                                decoration: authUnderlineFieldDecoration(
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
+                                      color: surakshaMuted,
                                     ),
                                     onPressed: () => setState(
                                       () =>
@@ -223,17 +238,20 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 ),
                               ),
                               const SizedBox(height: S.lg),
+                              const AuthFieldLabel('CONFIRM PASSWORD'),
+                              const SizedBox(height: kFieldLabelGap),
                               TextField(
                                 controller: _confirmPasswordController,
                                 obscureText: _obscureConfirmPassword,
                                 style: const TextStyle(color: surakshaAuthText),
-                                decoration: authFieldDecoration(
-                                  labelText: 'CONFIRM PASSWORD',
+                                cursorColor: kFieldUnderlineFocused,
+                                decoration: authUnderlineFieldDecoration(
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscureConfirmPassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
+                                      color: surakshaMuted,
                                     ),
                                     onPressed: () => setState(
                                       () => _obscureConfirmPassword =
@@ -252,8 +270,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 ),
                               ),
                               const SizedBox(height: authFooterLinkTopGap),
-                              AuthFooterLink(
-                                label: 'Already have an account? Log In',
+                              AuthRegisterPrompt(
+                                prefix: 'Already have an account? ',
+                                action: 'Log in now',
                                 onPressed: () => context.go(AppRoutes.login),
                               ),
                             ],

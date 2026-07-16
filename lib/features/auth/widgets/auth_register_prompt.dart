@@ -24,9 +24,13 @@ class AuthRegisterPrompt extends StatefulWidget {
   const AuthRegisterPrompt({
     super.key,
     required this.onPressed,
+    this.prefix = kRegisterPromptPrefix,
+    this.action = kRegisterPromptAction,
   });
 
   final VoidCallback onPressed;
+  final String prefix;
+  final String action;
 
   @override
   State<AuthRegisterPrompt> createState() => _AuthRegisterPromptState();
@@ -55,9 +59,9 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
     decoration: TextDecoration.none,
   );
 
-  double get _actionWidth {
+  double _actionWidthFor(String action) {
     final painter = TextPainter(
-      text: TextSpan(text: kRegisterPromptAction, style: _actionStyle),
+      text: TextSpan(text: action, style: _actionStyle),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
@@ -138,7 +142,7 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
 
   @override
   Widget build(BuildContext context) {
-    final actionWidth = _actionWidth;
+    final actionWidth = _actionWidthFor(widget.action);
 
     return Center(
       child: Material(
@@ -159,12 +163,12 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(kRegisterPromptPrefix, style: _prefixStyle),
+                Text(widget.prefix, style: _prefixStyle),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(kRegisterPromptAction, style: _actionStyle),
+                    Text(widget.action, style: _actionStyle),
                     const SizedBox(height: kRegisterBarGap),
                     _buildBar(actionWidth),
                   ],
