@@ -3,7 +3,7 @@ library copy_constants;
 class CopyConstants {
   CopyConstants._();
 
-  static const String appName = 'Suraksha';
+  static const String appName = 'Surakshya';
   static const String tagline = 'THE GUARDIAN ON YOUR WRIST';
 
   static const String splashPercent = '%';
