@@ -104,6 +104,51 @@ class GuardianLinkingNotifier extends StateNotifier<GuardianLinkingState> {
       rethrow;
     }
   }
+
+  Future<String> setEmergencyContact({
+    required String guardianId,
+    required bool isEmergencyContact,
+  }) async {
+    final message = await _api.setGuardianEmergencyContact(
+      guardianId: guardianId,
+      isEmergencyContact: isEmergencyContact,
+    );
+    // Optimistic local update so the star flips immediately.
+    state = state.copyWith(
+      guardians: state.guardians
+          .map(
+            (g) => g.copyWith(
+              isEmergencyContact:
+                  isEmergencyContact ? g.id == guardianId : false,
+            ),
+          )
+          .toList(growable: false),
+      clearError: true,
+    );
+    await refresh();
+    return message;
+  }
+
+  Future<String> updateGuardianPhone({
+    required String guardianId,
+    required String phone,
+  }) async {
+    final message = await _api.updateGuardianPhone(
+      guardianId: guardianId,
+      phone: phone,
+    );
+    final normalized = phone.trim();
+    state = state.copyWith(
+      guardians: state.guardians
+          .map(
+            (g) => g.id == guardianId ? g.copyWith(phone: normalized) : g,
+          )
+          .toList(growable: false),
+      clearError: true,
+    );
+    await refresh();
+    return message;
+  }
 }
 
 final guardianLinkingProvider =

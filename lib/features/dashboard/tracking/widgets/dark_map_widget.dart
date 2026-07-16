@@ -5,6 +5,17 @@ import 'package:suraksha/features/dashboard/tracking/tracking_map_view.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 
+/// Default (collapsed) map height — taller than the prior 140px for Box 1 breathing room.
+const double kMapHeightCompact = 220;
+
+/// Expanded map height = compact × 1.35 (capped so guardians stay reachable).
+const double kMapHeightExpanded = 297;
+
+const Duration kMapExpandDuration = Duration(milliseconds: 280);
+
+const double kMapToggleIconSize = 20;
+const double kMapToggleAlpha = 0.55;
+
 class DarkMapWidget extends StatelessWidget {
   const DarkMapWidget({
     super.key,
@@ -16,40 +27,45 @@ class DarkMapWidget extends StatelessWidget {
   final VoidCallback onToggle;
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onToggle,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 320),
-          curve: Curves.easeInOut,
-          height: expanded ? 320 : 140,
-          margin: const EdgeInsets.symmetric(horizontal: S.md),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(S.radiusLg),
-            border: Border.all(color: dashboardBorder),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              const TrackingMapView(),
-              Positioned(
-                right: S.sm,
-                top: S.sm,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: surakshaBlack.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    expanded ? Icons.expand_less : Icons.expand_more,
+  Widget build(BuildContext context) => AnimatedContainer(
+        duration: kMapExpandDuration,
+        curve: Curves.easeInOut,
+        height: expanded ? kMapHeightExpanded : kMapHeightCompact,
+        margin: const EdgeInsets.symmetric(horizontal: S.md),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(S.radiusLg),
+          border: Border.all(color: dashboardBorder),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const TrackingMapView(),
+            Positioned(
+              right: S.sm,
+              top: S.sm,
+              child: Material(
+                color: surakshaBlack.withValues(alpha: kMapToggleAlpha),
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: IconButton(
+                  onPressed: onToggle,
+                  icon: Icon(
+                    expanded ? Icons.close_fullscreen : Icons.open_in_full,
                     color: surakshaForeground,
-                    size: 20,
+                    size: kMapToggleIconSize,
+                  ),
+                  tooltip: expanded ? 'Collapse map' : 'Expand map',
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.all(S.sm),
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
 }

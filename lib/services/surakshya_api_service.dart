@@ -177,6 +177,48 @@ class SurakshyaApiService {
     return data['message'] as String? ?? 'Guardian invite sent';
   }
 
+  /// PATCH /guardians/:id/emergency-contact — designate one SOS emergency contact.
+  Future<String> setGuardianEmergencyContact({
+    required String guardianId,
+    required bool isEmergencyContact,
+  }) async {
+    final headers = await _authHeaders();
+    final response = await _client.patch(
+      Uri.parse('$_base/guardians/$guardianId/emergency-contact'),
+      headers: headers,
+      body: jsonEncode({'isEmergencyContact': isEmergencyContact}),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to update emergency contact',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ?? 'Emergency contact updated';
+  }
+
+  /// PATCH /guardians/:id/phone — update a linked guardian's dial number.
+  Future<String> updateGuardianPhone({
+    required String guardianId,
+    required String phone,
+  }) async {
+    final headers = await _authHeaders();
+    final response = await _client.patch(
+      Uri.parse('$_base/guardians/$guardianId/phone'),
+      headers: headers,
+      body: jsonEncode({'phone': phone.trim()}),
+    );
+    final data = _decode(response);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw SurakshyaApiException(
+        _messageFrom(data) ?? 'Failed to update phone number',
+        statusCode: response.statusCode,
+      );
+    }
+    return data['message'] as String? ?? 'Guardian phone updated';
+  }
+
   Future<String> acceptChildRequest(String requestId) async {
     final headers = await _authHeaders();
     final response = await _client.post(

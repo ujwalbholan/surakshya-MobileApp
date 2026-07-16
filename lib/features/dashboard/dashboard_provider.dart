@@ -221,8 +221,8 @@ final familyMembersProvider = Provider<List<ContactModel>>((ref) {
           id: g.id,
           name: g.fullName,
           phone: g.phone,
-          role: 'Guardian',
-          isEmergency: true,
+          role: g.isEmergencyContact ? 'Emergency' : 'Guardian',
+          isEmergency: g.isEmergencyContact,
           initials: g.initials,
         ),
       )

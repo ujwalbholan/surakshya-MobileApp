@@ -7,6 +7,7 @@ class LinkedGuardian {
     required this.email,
     required this.phone,
     required this.role,
+    this.isEmergencyContact = false,
   });
 
   final String id;
@@ -14,6 +15,7 @@ class LinkedGuardian {
   final String email;
   final String phone;
   final String role;
+  final bool isEmergencyContact;
 
   factory LinkedGuardian.fromJson(Map<String, dynamic> json) => LinkedGuardian(
         id: json['id'] as String,
@@ -21,6 +23,20 @@ class LinkedGuardian {
         email: json['email'] as String,
         phone: json['phone'] as String,
         role: json['role'] as String? ?? 'GUARDIAN',
+        isEmergencyContact: json['is_emergency_contact'] == true,
+      );
+
+  LinkedGuardian copyWith({
+    String? phone,
+    bool? isEmergencyContact,
+  }) =>
+      LinkedGuardian(
+        id: id,
+        fullName: fullName,
+        email: email,
+        phone: phone ?? this.phone,
+        role: role,
+        isEmergencyContact: isEmergencyContact ?? this.isEmergencyContact,
       );
 
   String get initials {

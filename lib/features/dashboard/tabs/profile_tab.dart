@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
+import 'package:suraksha/features/guardians/edit_guardian_phone_sheet.dart';
 import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/models/user_model.dart';
 import 'package:suraksha/router/app_routes.dart';
@@ -88,6 +89,36 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.guardians),
                     ),
+                    const Divider(height: 1, color: dashboardBorder),
+                    ListTile(
+                      title: const Text(CopyConstants.emergencyContactTitle),
+                      subtitle: Text(
+                        () {
+                          final matches = guardians.guardians
+                              .where((g) => g.isEmergencyContact);
+                          if (matches.isEmpty) {
+                            return CopyConstants.noEmergencyContactYet;
+                          }
+                          final emergency = matches.first;
+                          return '${emergency.fullName} · ${emergency.phone}';
+                        }(),
+                      ),
+                      trailing: const Icon(Icons.star_rounded,
+                          color: surakshaCrimson),
+                      onTap: () {
+                        final matches = guardians.guardians
+                            .where((g) => g.isEmergencyContact);
+                        if (matches.isEmpty) {
+                          context.push(AppRoutes.guardians);
+                          return;
+                        }
+                        showEditGuardianPhoneSheet(
+                          context: context,
+                          ref: ref,
+                          guardian: matches.first,
+                        );
+                      },
+                    ),
                     if (guardians.guardians.isEmpty && !guardians.loading)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
@@ -116,7 +147,40 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                             ),
                           ),
                           title: Text(g.fullName),
-                          subtitle: Text('Guardian · ${g.phone}'),
+                          subtitle: Text(
+                            g.isEmergencyContact
+                                ? '${CopyConstants.emergencyContactBadge} · ${g.phone}'
+                                : 'Guardian · ${g.phone}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (g.isEmergencyContact)
+                                const Padding(
+                                  padding: EdgeInsets.only(right: 4),
+                                  child: Icon(
+                                    Icons.star_rounded,
+                                    color: surakshaCrimson,
+                                    size: 20,
+                                  ),
+                                ),
+                              IconButton(
+                                tooltip: CopyConstants.editPhoneAction,
+                                icon: const Icon(Icons.edit_outlined, size: 20),
+                                color: surakshaMuted,
+                                onPressed: () => showEditGuardianPhoneSheet(
+                                  context: context,
+                                  ref: ref,
+                                  guardian: g,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () => showEditGuardianPhoneSheet(
+                            context: context,
+                            ref: ref,
+                            guardian: g,
+                          ),
                         ),
                       ),
                   ],

@@ -81,6 +81,26 @@ class CopyConstants {
   static const String noLinkedGuardians =
       'No guardians linked yet. Invite someone or accept an incoming request.';
   static const String manageGuardians = 'Manage guardians';
+  static const String emergencyContactTitle = 'Emergency contact';
+  static const String emergencyContactSubtitle =
+      'Pick one guardian number for SOS alerts. Only one can be selected.';
+  static const String emergencyContactBadge = 'Emergency';
+  static const String setAsEmergencyContact = 'Set as emergency contact';
+  static const String clearEmergencyContact = 'Remove emergency contact';
+  static const String noEmergencyContactYet =
+      'No emergency contact yet. Choose a guardian below.';
+  static const String editGuardianPhoneTitle = 'Edit phone number';
+  static const String editGuardianPhoneSubtitle =
+      'Nepal mobile only. Used for band emergency dial when this guardian is your SOS contact.';
+  static const String editGuardianPhoneHint = '98XXXXXXXX';
+  static const String editGuardianPhoneLabel = 'Phone number';
+  static const String editGuardianPhoneSave = 'Save number';
+  static const String editGuardianPhoneInvalid =
+      'Enter a valid Nepal mobile (9XXXXXXXXX)';
+  static const String editGuardianPhoneSuccess = 'Phone number updated';
+  static const String editGuardianPhoneSynced =
+      'Phone updated. Synced to your Suraksha Band for emergency calls.';
+  static const String editPhoneAction = 'Edit phone';
   static const String familyMembersSubtitle =
       'Your live location on the map · family names, roles, and numbers below';
   static const String familyRoleLabel = 'Role';

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
+import 'package:suraksha/features/guardians/edit_guardian_phone_sheet.dart';
 import 'package:suraksha/features/guardians/guardian_provider.dart';
 import 'package:suraksha/models/guardian_models.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
@@ -177,7 +178,12 @@ class _GuardiansScreenState extends ConsumerState<GuardiansScreen> {
                 CopyConstants.noLinkedGuardians,
                 style: SurakshaTypography.monoLabel,
               )
-            else
+            else ...[
+              Text(
+                CopyConstants.emergencyContactSubtitle,
+                style: SurakshaTypography.monoLabel,
+              ),
+              const SizedBox(height: S.sm),
               Material(
                 color: dashboardCard,
                 borderRadius: BorderRadius.circular(S.radiusLg),
@@ -185,28 +191,25 @@ class _GuardiansScreenState extends ConsumerState<GuardiansScreen> {
                 child: Column(
                   children: [
                     for (var i = 0; i < state.guardians.length; i++) ...[
-                      if (i > 0) const Divider(height: 1, color: dashboardBorder),
-                      ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: S.md,
+                      if (i > 0)
+                        const Divider(height: 1, color: dashboardBorder),
+                      _GuardianTile(
+                        guardian: state.guardians[i],
+                        onSetEmergency: () => _setEmergency(
+                          state.guardians[i],
+                          !state.guardians[i].isEmergencyContact,
                         ),
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              surakshaCrimson.withValues(alpha: 0.2),
-                          child: Text(
-                            state.guardians[i].initials,
-                            style: const TextStyle(color: surakshaCrimson),
-                          ),
-                        ),
-                        title: Text(state.guardians[i].fullName),
-                        subtitle: Text(
-                          '${state.guardians[i].role} · ${state.guardians[i].phone}',
+                        onEditPhone: () => showEditGuardianPhoneSheet(
+                          context: context,
+                          ref: ref,
+                          guardian: state.guardians[i],
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
+            ],
           ],
         ),
       ),
@@ -235,6 +238,28 @@ class _GuardiansScreenState extends ConsumerState<GuardiansScreen> {
           await ref.read(guardianLinkingProvider.notifier).rejectRequest(id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } on SurakshyaApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    }
+  }
+
+  Future<void> _setEmergency(LinkedGuardian guardian, bool enable) async {
+    try {
+      final message = await ref
+          .read(guardianLinkingProvider.notifier)
+          .setEmergencyContact(
+            guardianId: guardian.id,
+            isEmergencyContact: enable,
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
       }
     } on SurakshyaApiException catch (e) {
       if (mounted) {
@@ -312,6 +337,80 @@ class _PendingRequestTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _GuardianTile extends StatelessWidget {
+  const _GuardianTile({
+    required this.guardian,
+    required this.onSetEmergency,
+    required this.onEditPhone,
+  });
+
+  final LinkedGuardian guardian;
+  final VoidCallback onSetEmergency;
+  final VoidCallback onEditPhone;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: S.md),
+      onTap: onEditPhone,
+      leading: CircleAvatar(
+        backgroundColor: surakshaCrimson.withValues(alpha: 0.2),
+        child: Text(
+          guardian.initials,
+          style: const TextStyle(color: surakshaCrimson),
+        ),
+      ),
+      title: Row(
+        children: [
+          Flexible(child: Text(guardian.fullName)),
+          if (guardian.isEmergencyContact) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: surakshaCrimson.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                CopyConstants.emergencyContactBadge,
+                style: SurakshaTypography.monoLabel.copyWith(
+                  color: surakshaCrimson,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+      subtitle: Text('Guardian · ${guardian.phone}'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: CopyConstants.editPhoneAction,
+            onPressed: onEditPhone,
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            color: surakshaMuted,
+          ),
+          IconButton(
+            tooltip: guardian.isEmergencyContact
+                ? CopyConstants.clearEmergencyContact
+                : CopyConstants.setAsEmergencyContact,
+            onPressed: onSetEmergency,
+            icon: Icon(
+              guardian.isEmergencyContact
+                  ? Icons.star_rounded
+                  : Icons.star_outline_rounded,
+              color:
+                  guardian.isEmergencyContact ? surakshaCrimson : surakshaMuted,
+            ),
+          ),
+        ],
       ),
     );
   }
