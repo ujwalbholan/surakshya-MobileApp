@@ -47,6 +47,10 @@ TextStyle get kProfileRowTrailingStyle => SurakshaTypography.monoLabel.copyWith(
       fontSize: 11,
     );
 
+/// Uppercase section label above a Profile card (D10 contrast).
+TextStyle get kProfileSectionLabelStyle =>
+    SurakshaTypography.monoLabel.copyWith(color: surakshaAuthText);
+
 /// Uppercase section label above a Profile card.
 class ProfileSection extends StatelessWidget {
   const ProfileSection(this.title, this.children, {super.key});
@@ -58,7 +62,7 @@ class ProfileSection extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title.toUpperCase(), style: SurakshaTypography.monoLabel),
+          Text(title.toUpperCase(), style: kProfileSectionLabelStyle),
           const SizedBox(height: kProfileSectionLabelGap),
           ...children,
           const SizedBox(height: kProfileSectionBottomGap),

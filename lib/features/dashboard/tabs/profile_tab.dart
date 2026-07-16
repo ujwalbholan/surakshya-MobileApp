@@ -71,6 +71,8 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                             ? CopyConstants.noLinkedGuardians
                             : '${guardians.guardians.length} linked · ${guardians.pendingRequests.length} pending',
                         style: kProfileRowSubtitleStyle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       trailing: const Icon(
                         Icons.chevron_right,
@@ -100,6 +102,8 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                           return '${emergency.fullName} · ${emergency.phone}';
                         }(),
                         style: kProfileRowSubtitleStyle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       trailing: const Icon(
                         Icons.chevron_right,
@@ -324,7 +328,12 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
               style: SurakshaTypography.dashTitle,
             ),
             const SizedBox(height: S.sm),
-            const Text(CopyConstants.profileSignOutConfirm),
+            Text(
+              CopyConstants.profileSignOutConfirm,
+              style: SurakshaTypography.dashSubtitle.copyWith(
+                color: surakshaAuthText,
+              ),
+            ),
             const SizedBox(height: S.lg),
             Row(
               children: [
@@ -389,12 +398,19 @@ class _GuardianProfileRow extends StatelessWidget {
               ),
             ),
           ),
-          title: Text(guardian.fullName, style: kProfileRowTitleStyle),
+          title: Text(
+            guardian.fullName,
+            style: kProfileRowTitleStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           subtitle: Text(
             guardian.isEmergencyContact
                 ? '${CopyConstants.emergencyContactBadge} · ${guardian.phone}'
                 : 'Guardian · ${guardian.phone}',
             style: kProfileRowSubtitleStyle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
