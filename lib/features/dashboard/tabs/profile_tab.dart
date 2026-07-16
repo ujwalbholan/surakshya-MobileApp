@@ -7,8 +7,10 @@ import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/dashboard/dashboard_provider.dart';
 import 'package:suraksha/features/dashboard/profile/widgets/profile_hero_card.dart';
+import 'package:suraksha/features/dashboard/profile/widgets/profile_section_card.dart';
 import 'package:suraksha/features/guardians/edit_guardian_phone_sheet.dart';
 import 'package:suraksha/features/guardians/guardian_provider.dart';
+import 'package:suraksha/models/guardian_models.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/services/ble_service.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -48,29 +50,47 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
         child: ListView(
           padding: EdgeInsets.fromLTRB(S.lg, S.lg, S.lg, bottomPad + S.lg),
           children: [
-            // Phase 1: hero only — sections unchanged until Phase 2 approval.
             ProfileHeroCard(user: user),
             const SizedBox(height: S.xl),
-            _Section(CopyConstants.familyMembersTitle, [
-              Material(
-                color: dashboardCard,
-                borderRadius: BorderRadius.circular(S.radiusLg),
-                clipBehavior: Clip.antiAlias,
+            ProfileSection(CopyConstants.familyMembersTitle, [
+              ProfileSettingsCard(
                 child: Column(
                   children: [
                     ListTile(
-                      title: const Text(CopyConstants.manageGuardians),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: kProfileRowPaddingH,
+                        vertical: kProfileRowPaddingV,
+                      ),
+                      leading: const ProfileRowIcon(Icons.group_outlined),
+                      title: Text(
+                        CopyConstants.manageGuardians,
+                        style: kProfileRowTitleStyle,
+                      ),
                       subtitle: Text(
                         guardians.guardians.isEmpty
                             ? CopyConstants.noLinkedGuardians
                             : '${guardians.guardians.length} linked · ${guardians.pendingRequests.length} pending',
+                        style: kProfileRowSubtitleStyle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: surakshaAuthText,
+                      ),
                       onTap: () => context.push(AppRoutes.guardians),
                     ),
-                    const Divider(height: 1, color: dashboardBorder),
+                    const ProfileRowDivider(),
                     ListTile(
-                      title: const Text(CopyConstants.emergencyContactTitle),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: kProfileRowPaddingH,
+                        vertical: kProfileRowPaddingV,
+                      ),
+                      leading: const ProfileRowIcon(Icons.star_rounded),
+                      title: Text(
+                        CopyConstants.emergencyContactTitle,
+                        style: kProfileRowTitleStyle,
+                      ),
                       subtitle: Text(
                         () {
                           final matches = guardians.guardians
@@ -81,9 +101,14 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                           final emergency = matches.first;
                           return '${emergency.fullName} · ${emergency.phone}';
                         }(),
+                        style: kProfileRowSubtitleStyle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      trailing: const Icon(Icons.star_rounded,
-                          color: surakshaCrimson),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: surakshaAuthText,
+                      ),
                       onTap: () {
                         final matches = guardians.guardians
                             .where((g) => g.isEmergencyContact);
@@ -101,61 +126,24 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                     if (guardians.guardians.isEmpty && !guardians.loading)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
-                          S.md,
+                          kProfileRowPaddingH,
                           0,
-                          S.md,
-                          S.sm,
+                          kProfileRowPaddingH,
+                          kProfileRowPaddingV,
                         ),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             CopyConstants.noLinkedGuardians,
-                            style: SurakshaTypography.monoLabel,
+                            style: kProfileRowSubtitleStyle,
                           ),
                         ),
                       )
                     else
                       ...guardians.guardians.map(
-                        (g) => ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor:
-                                surakshaCrimson.withValues(alpha: 0.15),
-                            child: Text(
-                              g.initials,
-                              style: const TextStyle(color: surakshaCrimson),
-                            ),
-                          ),
-                          title: Text(g.fullName),
-                          subtitle: Text(
-                            g.isEmergencyContact
-                                ? '${CopyConstants.emergencyContactBadge} · ${g.phone}'
-                                : 'Guardian · ${g.phone}',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (g.isEmergencyContact)
-                                const Padding(
-                                  padding: EdgeInsets.only(right: 4),
-                                  child: Icon(
-                                    Icons.star_rounded,
-                                    color: surakshaCrimson,
-                                    size: 20,
-                                  ),
-                                ),
-                              IconButton(
-                                tooltip: CopyConstants.editPhoneAction,
-                                icon: const Icon(Icons.edit_outlined, size: 20),
-                                color: surakshaMuted,
-                                onPressed: () => showEditGuardianPhoneSheet(
-                                  context: context,
-                                  ref: ref,
-                                  guardian: g,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: () => showEditGuardianPhoneSheet(
+                        (g) => _GuardianProfileRow(
+                          guardian: g,
+                          onEdit: () => showEditGuardianPhoneSheet(
                             context: context,
                             ref: ref,
                             guardian: g,
@@ -166,12 +154,21 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                 ),
               ),
             ]),
-            _Section('Location', [
-              _settingsCard(
-                SwitchListTile(
-                  title: const Text('Share my location'),
-                  subtitle: const Text(
+            ProfileSection('Location', [
+              ProfileSettingsCard(
+                child: SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: kProfileRowPaddingH,
+                    vertical: kProfileRowPaddingV,
+                  ),
+                  secondary: const ProfileRowIcon(Icons.location_on_outlined),
+                  title: Text(
+                    'Share my location',
+                    style: kProfileRowTitleStyle,
+                  ),
+                  subtitle: Text(
                     'Used for SOS alerts to the police dashboard',
+                    style: kProfileRowSubtitleStyle,
                   ),
                   value: dash.locationSharingActive,
                   activeThumbColor: surakshaCrimson,
@@ -181,13 +178,24 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                 ),
               ),
             ]),
-            _Section('Device', [
-              _settingsCard(
-                Column(
+            ProfileSection('Device', [
+              ProfileSettingsCard(
+                child: Column(
                   children: [
                     ListTile(
-                      title: const Text('Pair Suraksha Band'),
-                      trailing: const Icon(Icons.bluetooth),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: kProfileRowPaddingH,
+                        vertical: kProfileRowPaddingV,
+                      ),
+                      leading: const ProfileRowIcon(Icons.bluetooth),
+                      title: Text(
+                        'Pair Suraksha Band',
+                        style: kProfileRowTitleStyle,
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: surakshaAuthText,
+                      ),
                       onTap: () async {
                         await ref.read(bleServiceProvider).startScan();
                         if (context.mounted) {
@@ -197,15 +205,23 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                         }
                       },
                     ),
-                    const Divider(height: 1, color: dashboardBorder),
+                    const ProfileRowDivider(),
                     ListTile(
-                      title: const Text('Band status'),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: kProfileRowPaddingH,
+                        vertical: kProfileRowPaddingV,
+                      ),
+                      leading: const ProfileRowIcon(Icons.watch_outlined),
+                      title: Text(
+                        'Band status',
+                        style: kProfileRowTitleStyle,
+                      ),
                       trailing: Text(
                         dash.bandConnected ? 'Connected' : 'Disconnected',
-                        style: TextStyle(
+                        style: kProfileRowTrailingStyle.copyWith(
                           color: dash.bandConnected
                               ? surakshaSuccess
-                              : surakshaMuted,
+                              : surakshaAuthText,
                         ),
                       ),
                     ),
@@ -213,41 +229,80 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                 ),
               ),
             ]),
-            _Section('Notifications', [
-              _settingsCard(
-                SwitchListTile(
-                  title: const Text('SOS alerts'),
+            ProfileSection('Notifications', [
+              ProfileSettingsCard(
+                child: SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: kProfileRowPaddingH,
+                    vertical: kProfileRowPaddingV,
+                  ),
+                  secondary: const ProfileRowIcon(Icons.notifications_outlined),
+                  title: Text(
+                    'SOS alerts',
+                    style: kProfileRowTitleStyle,
+                  ),
                   value: true,
                   activeThumbColor: surakshaCrimson,
                   onChanged: (_) {},
                 ),
               ),
             ]),
-            _Section('Account', [
-              _settingsCard(
-                Column(
+            ProfileSection('Account', [
+              ProfileSettingsCard(
+                child: Column(
                   children: [
                     ListTile(
-                      title: const Text('Marketing site'),
-                      trailing: const Icon(Icons.chevron_right),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: kProfileRowPaddingH,
+                        vertical: kProfileRowPaddingV,
+                      ),
+                      leading: const ProfileRowIcon(Icons.language_outlined),
+                      title: Text(
+                        'Marketing site',
+                        style: kProfileRowTitleStyle,
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: surakshaAuthText,
+                      ),
                       onTap: () => context.push(AppRoutes.home),
                     ),
-                    const Divider(height: 1, color: dashboardBorder),
+                    const ProfileRowDivider(),
                     ListTile(
-                      title: const Text('Support'),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: kProfileRowPaddingH,
+                        vertical: kProfileRowPaddingV,
+                      ),
+                      leading: const ProfileRowIcon(Icons.help_outline),
+                      title: Text(
+                        'Support',
+                        style: kProfileRowTitleStyle,
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: surakshaAuthText,
+                      ),
                       onTap: () {},
                     ),
                   ],
                 ),
               ),
             ]),
-            Center(
-              child: TextButton(
-                onPressed: () => _confirmSignOut(context, ref),
-                child: const Text(
-                  CopyConstants.profileSignOut,
-                  style: TextStyle(color: surakshaCrimson),
+            ProfileSettingsCard(
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: kProfileRowPaddingH,
+                  vertical: kProfileRowPaddingV,
                 ),
+                leading: const ProfileRowIcon(
+                  Icons.logout,
+                  color: surakshaCrimson,
+                ),
+                title: Text(
+                  CopyConstants.profileSignOut,
+                  style: kProfileRowTitleStyle.copyWith(color: surakshaCrimson),
+                ),
+                onTap: () => _confirmSignOut(context, ref),
               ),
             ),
           ],
@@ -273,7 +328,12 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
               style: SurakshaTypography.dashTitle,
             ),
             const SizedBox(height: S.sm),
-            const Text(CopyConstants.profileSignOutConfirm),
+            Text(
+              CopyConstants.profileSignOutConfirm,
+              style: SurakshaTypography.dashSubtitle.copyWith(
+                color: surakshaAuthText,
+              ),
+            ),
             const SizedBox(height: S.lg),
             Row(
               children: [
@@ -306,27 +366,75 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
   }
 }
 
-Widget _settingsCard(Widget child) => Material(
-      color: dashboardCard,
-      borderRadius: BorderRadius.circular(S.radiusLg),
-      clipBehavior: Clip.antiAlias,
-      child: child,
-    );
+class _GuardianProfileRow extends StatelessWidget {
+  const _GuardianProfileRow({
+    required this.guardian,
+    required this.onEdit,
+  });
 
-class _Section extends StatelessWidget {
-  const _Section(this.title, this.children);
-
-  final String title;
-  final List<Widget> children;
+  final LinkedGuardian guardian;
+  final VoidCallback onEdit;
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title.toUpperCase(), style: SurakshaTypography.monoLabel),
-          const SizedBox(height: S.sm),
-          ...children,
-          const SizedBox(height: S.lg),
-        ],
-      );
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const ProfileRowDivider(),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: kProfileRowPaddingH,
+            vertical: kProfileRowPaddingV,
+          ),
+          leading: CircleAvatar(
+            radius: kProfileGuardianAvatarRadius,
+            backgroundColor: surakshaCrimson.withValues(
+              alpha: kProfileRowIconBgAlpha,
+            ),
+            child: Text(
+              guardian.initials,
+              style: SurakshaTypography.dashTitle.copyWith(
+                fontSize: 12,
+                color: surakshaCrimson,
+              ),
+            ),
+          ),
+          title: Text(
+            guardian.fullName,
+            style: kProfileRowTitleStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            guardian.isEmergencyContact
+                ? '${CopyConstants.emergencyContactBadge} · ${guardian.phone}'
+                : 'Guardian · ${guardian.phone}',
+            style: kProfileRowSubtitleStyle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (guardian.isEmergencyContact)
+                const Padding(
+                  padding: EdgeInsets.only(right: S.xs),
+                  child: Icon(
+                    Icons.star_rounded,
+                    color: surakshaCrimson,
+                    size: kProfileRowIconSize,
+                  ),
+                ),
+              IconButton(
+                tooltip: CopyConstants.editPhoneAction,
+                icon: const Icon(Icons.edit_outlined, size: kProfileRowIconSize),
+                color: surakshaAuthText,
+                onPressed: onEdit,
+              ),
+            ],
+          ),
+          onTap: onEdit,
+        ),
+      ],
+    );
+  }
 }
