@@ -15,7 +15,7 @@ import 'package:suraksha/features/home/home_screen.dart';
 import 'package:suraksha/features/notifications/notifications_screen.dart';
 import 'package:suraksha/features/onboarding/onboarding_screen.dart';
 import 'package:suraksha/features/parent/parent_shell.dart';
-import 'package:suraksha/features/splash/splash_screen1.dart';
+import 'package:suraksha/features/splash/surakshya_reveal_splash_screen.dart';
 import 'package:suraksha/features/splash/splash_screen2.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -35,7 +35,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.splash,
-        builder: (context, state) => const SplashScreen1(),
+        builder: (context, state) => const SurakshyaRevealSplashScreen(),
       ),
       GoRoute(
         path: AppRoutes.splash2,

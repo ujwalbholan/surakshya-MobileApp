@@ -7,6 +7,7 @@ class CopyConstants {
   static const String tagline = 'THE GUARDIAN ON YOUR WRIST';
 
   static const String splashPercent = '%';
+  static const String welcome = 'Welcome';
 
   static const String onboardingSkip = 'Skip';
   static const String onboardingPage1Title = 'The Guardian';

@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 
 const Color surakshaBlack = Color(0xFF000000);
 const Color surakshaDarkSurface = Color(0xFF0A0A0A);
+
+/// Reveal splash illuminate palette (background = [surakshaBlack], accent = [surakshaCrimson]).
+const Color kSplashTextDim = Color(0xFF4A4A4A);
+const Color kSplashTextBright = Color(0xFFF5F5F5);
+const Color kSplashCounterGray = Color(0xFF6B6B6B);
+const Color kSplashButtonBorder = Color(0xFF3A3A3A);
 const Color surakshaCard = Color(0xFF111111);
 const Color surakshaSecondary = Color(0xFF1A1A1A);
 const Color surakshaBorder = Color(0xFF222222);
