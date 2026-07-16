@@ -45,7 +45,7 @@ class FamilyMemberTile extends StatelessWidget {
                 const Spacer(),
                 const Icon(
                   Icons.phone_outlined,
-                  color: surakshaMuted,
+                  color: surakshaAuthText,
                   size: 18,
                 ),
               ],
@@ -72,7 +72,10 @@ class FamilyMemberTile extends StatelessWidget {
               member.phone,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: SurakshaTypography.monoLabel.copyWith(fontSize: 11),
+              style: SurakshaTypography.monoLabel.copyWith(
+                fontSize: 11,
+                color: surakshaAuthText,
+              ),
             ),
           ],
         ),

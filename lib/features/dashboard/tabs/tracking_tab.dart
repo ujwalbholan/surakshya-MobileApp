@@ -71,7 +71,9 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
                   const SizedBox(height: S.xs),
                   Text(
                     CopyConstants.familyMembersSubtitle,
-                    style: SurakshaTypography.dashSubtitle,
+                    style: SurakshaTypography.dashSubtitle.copyWith(
+                      color: surakshaAuthText,
+                    ),
                   ),
                 ],
               ),
@@ -91,7 +93,9 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
                       padding: const EdgeInsets.all(S.lg),
                       child: Text(
                         familyError ?? 'Unable to load family list',
-                        style: SurakshaTypography.dashSubtitle,
+                        style: SurakshaTypography.dashSubtitle.copyWith(
+                          color: surakshaAuthText,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     )
@@ -100,7 +104,9 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
                       padding: const EdgeInsets.all(S.lg),
                       child: Text(
                         'No family members linked yet.\nInvite a guardian to see them here.',
-                        style: SurakshaTypography.dashSubtitle,
+                        style: SurakshaTypography.dashSubtitle.copyWith(
+                          color: surakshaAuthText,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     )

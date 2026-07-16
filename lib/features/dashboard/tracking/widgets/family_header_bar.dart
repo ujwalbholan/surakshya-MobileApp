@@ -48,7 +48,10 @@ class FamilyHeaderBar extends StatelessWidget {
                     CopyConstants.myFamily,
                     style: SurakshaTypography.dashTitle,
                   ),
-                  const Icon(Icons.keyboard_arrow_down, color: surakshaMuted),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: surakshaAuthText,
+                  ),
                 ],
               ),
             ),
