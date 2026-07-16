@@ -16,6 +16,9 @@ const Duration kMapExpandDuration = Duration(milliseconds: 280);
 const double kMapToggleIconSize = 20;
 const double kMapToggleAlpha = 0.55;
 
+/// How far the live-location banner hangs below the map stack edge.
+const double kMapBannerOverlap = 20;
+
 class DarkMapWidget extends StatelessWidget {
   const DarkMapWidget({
     super.key,

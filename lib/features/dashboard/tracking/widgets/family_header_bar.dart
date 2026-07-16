@@ -1,58 +1,87 @@
 library family_header_bar;
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
-import 'package:suraksha/router/app_routes.dart';
+import 'package:suraksha/features/dashboard/dashboard_provider.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 
-class FamilyHeaderBar extends StatelessWidget {
+class FamilyHeaderBar extends ConsumerWidget {
   const FamilyHeaderBar({super.key, required this.unreadCount});
 
   final int unreadCount;
 
+  void _openNotificationsSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: dashboardSheetBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(S.radiusXl)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          S.lg,
+          S.lg,
+          S.lg,
+          S.lg + MediaQuery.paddingOf(ctx).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: dashboardBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: S.lg),
+            Text(
+              CopyConstants.notificationsTitle,
+              style: SurakshaTypography.dashTitle,
+            ),
+            const SizedBox(height: S.sm),
+            Text(
+              CopyConstants.notificationsEmpty,
+              style: SurakshaTypography.dashSubtitle.copyWith(
+                color: surakshaAuthText,
+              ),
+            ),
+            const SizedBox(height: S.lg),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: surakshaCrimson),
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Got it'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context, WidgetRef ref) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: S.md, vertical: S.sm),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Semantics(
               label: 'Settings',
               button: true,
               child: IconButton(
-                icon: const Icon(Icons.settings_outlined, color: surakshaForeground),
-                onPressed: () => context.push(AppRoutes.profile),
-              ),
-            ),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: surakshaYellow,
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 16,
-                      color: surakshaBlack,
-                    ),
-                  ),
-                  const SizedBox(width: S.sm),
-                  Text(
-                    CopyConstants.myFamily,
-                    style: SurakshaTypography.dashTitle,
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: surakshaAuthText,
-                  ),
-                ],
+                icon: const Icon(
+                  Icons.settings_outlined,
+                  color: surakshaForeground,
+                ),
+                onPressed: () => ref
+                    .read(dashboardProvider.notifier)
+                    .setTab(DashboardTab.profile),
               ),
             ),
             Semantics(
@@ -66,7 +95,7 @@ class FamilyHeaderBar extends StatelessWidget {
                       Icons.notifications_outlined,
                       color: surakshaForeground,
                     ),
-                    onPressed: () {},
+                    onPressed: () => _openNotificationsSheet(context),
                   ),
                   if (unreadCount > 0)
                     Positioned(

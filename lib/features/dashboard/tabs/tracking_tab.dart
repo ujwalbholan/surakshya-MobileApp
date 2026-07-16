@@ -48,7 +48,7 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
                 Positioned(
                   left: S.lg,
                   right: S.lg,
-                  bottom: -20,
+                  bottom: -kMapBannerOverlap,
                   child: MapLocationSharingBanner(
                     active: dash.locationSharingActive,
                     onToggle: (_) => ref

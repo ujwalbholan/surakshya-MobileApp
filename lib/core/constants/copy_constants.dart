@@ -101,6 +101,9 @@ class CopyConstants {
   static const String editGuardianPhoneSynced =
       'Phone updated. Synced to your Suraksha Band for emergency calls.';
   static const String editPhoneAction = 'Edit phone';
+  static const String notificationsTitle = 'Notifications';
+  static const String notificationsEmpty =
+      'No notifications yet. SOS and safety alerts will show up here.';
   static const String familyMembersSubtitle =
       'Your live location on the map · family names, roles, and numbers below';
   static const String familyRoleLabel = 'Role';
