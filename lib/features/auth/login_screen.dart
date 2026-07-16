@@ -213,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: OriginButton(
                     onPressed: _submit,
                     loading: _isLoading,
-                    child: const Text('Sign In'),
+                    child: const Text('Log In'),
                   ),
                 ),
                 const SizedBox(height: authFooterLinkTopGap),

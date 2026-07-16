@@ -68,7 +68,7 @@ class CopyConstants {
       'Live location — updates every minute';
   static const String locationSharingOff = 'Location sharing is paused';
 
-  static const String loginTitle = 'Sign in';
+  static const String loginTitle = 'Log In';
   static const String loginSubtitle = 'Welcome back';
   static const String signupTitle = 'Create account';
   static const String signupSubtitle = 'Join Suraksha today';

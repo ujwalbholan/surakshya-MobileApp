@@ -253,7 +253,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               ),
                               const SizedBox(height: authFooterLinkTopGap),
                               AuthFooterLink(
-                                label: 'Already have an account? Sign in',
+                                label: 'Already have an account? Log In',
                                 onPressed: () => context.go(AppRoutes.login),
                               ),
                             ],
