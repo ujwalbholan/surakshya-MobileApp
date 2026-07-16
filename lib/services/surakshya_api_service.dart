@@ -1,5 +1,6 @@
 library surakshya_api_service;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +25,11 @@ class SurakshyaApiException implements Exception {
   @override
   String toString() => message;
 }
+
+const Duration kApiRequestTimeout = Duration(seconds: 15);
+
+const String kApiNetworkErrorMessage =
+    'Unable to reach the server. Check your connection and try again.';
 
 class AuthSession {
   const AuthSession({
@@ -67,61 +73,76 @@ class SurakshyaApiService {
 
   String get _base => AppConstants.surakshyaBaseUrl;
 
-  Future<LoginAttemptResult> attemptLogin(String email, String password) async {
-    final response = await _client.post(
-      Uri.parse('$_base/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email.trim(), 'password': password}),
-    );
-    final data = _decode(response);
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw SurakshyaApiException(
-        _errorMessage(response, data, fallback: 'Login failed'),
-        statusCode: response.statusCode,
-      );
+  /// Maps timeouts / socket failures to [SurakshyaApiException] for UI handling.
+  Future<T> _guardNetwork<T>(Future<T> Function() action) async {
+    try {
+      return await action().timeout(kApiRequestTimeout);
+    } on SurakshyaApiException {
+      rethrow;
+    } on TimeoutException {
+      throw SurakshyaApiException(kApiNetworkErrorMessage);
+    } catch (_) {
+      throw SurakshyaApiException(kApiNetworkErrorMessage);
     }
+  }
 
-    final requiresPasswordChange =
-        data['requiresPasswordChange'] == true;
-    final requiresActivationOtp =
-        data['requiresActivationOtp'] == true;
-    if (requiresPasswordChange || requiresActivationOtp) {
-      final challengeToken = data['challengeToken'] as String? ?? '';
-      if (challengeToken.isEmpty) {
+  Future<LoginAttemptResult> attemptLogin(String email, String password) {
+    return _guardNetwork(() async {
+      final response = await _client.post(
+        Uri.parse('$_base/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email.trim(), 'password': password}),
+      );
+      final data = _decode(response);
+      if (response.statusCode != 200 && response.statusCode != 201) {
         throw SurakshyaApiException(
-          'Guardian activation could not be started. Try again.',
+          _errorMessage(response, data, fallback: 'Login failed'),
+          statusCode: response.statusCode,
         );
       }
-      return LoginAttemptResult.challenge(
-        GuardianLoginChallenge(
-          email: email.trim(),
-          challengeToken: challengeToken,
-          message: data['message'] as String? ??
-              'Complete guardian activation to continue.',
-          requiresPasswordChange: requiresPasswordChange,
-          requiresActivationOtp: requiresActivationOtp,
-        ),
-      );
-    }
 
-    final userJson = data['user'] as Map<String, dynamic>? ?? {};
-    final accessToken = data['accessToken'] as String? ?? '';
-    final refreshToken = data['refreshToken'] as String? ?? '';
-    if (accessToken.isEmpty) {
-      throw SurakshyaApiException('Login response missing access token');
-    }
-    await _tokenStorage.saveTokens(
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-    );
-    final user = UserModel.fromSurakshyaJson(userJson);
-    return LoginAttemptResult.session(
-      AuthSession(
-        user: user,
+      final requiresPasswordChange =
+          data['requiresPasswordChange'] == true;
+      final requiresActivationOtp =
+          data['requiresActivationOtp'] == true;
+      if (requiresPasswordChange || requiresActivationOtp) {
+        final challengeToken = data['challengeToken'] as String? ?? '';
+        if (challengeToken.isEmpty) {
+          throw SurakshyaApiException(
+            'Guardian activation could not be started. Try again.',
+          );
+        }
+        return LoginAttemptResult.challenge(
+          GuardianLoginChallenge(
+            email: email.trim(),
+            challengeToken: challengeToken,
+            message: data['message'] as String? ??
+                'Complete guardian activation to continue.',
+            requiresPasswordChange: requiresPasswordChange,
+            requiresActivationOtp: requiresActivationOtp,
+          ),
+        );
+      }
+
+      final userJson = data['user'] as Map<String, dynamic>? ?? {};
+      final accessToken = data['accessToken'] as String? ?? '';
+      final refreshToken = data['refreshToken'] as String? ?? '';
+      if (accessToken.isEmpty) {
+        throw SurakshyaApiException('Login response missing access token');
+      }
+      await _tokenStorage.saveTokens(
         accessToken: accessToken,
         refreshToken: refreshToken,
-      ),
-    );
+      );
+      final user = UserModel.fromSurakshyaJson(userJson);
+      return LoginAttemptResult.session(
+        AuthSession(
+          user: user,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        ),
+      );
+    });
   }
 
   Future<AuthSession> login(String email, String password) async {
@@ -205,25 +226,27 @@ class SurakshyaApiService {
     required String email,
     required String phone,
     required String password,
-  }) async {
-    final response = await _client.post(
-      Uri.parse('$_base/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'full_name': fullName,
-        'email': email.trim().toLowerCase(),
-        'phone': phone.trim(),
-        'password': password,
-        'role': 'USER',
-      }),
-    );
-    final data = _decode(response);
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw SurakshyaApiException(
-        _errorMessage(response, data, fallback: 'Registration failed'),
-        statusCode: response.statusCode,
+  }) {
+    return _guardNetwork(() async {
+      final response = await _client.post(
+        Uri.parse('$_base/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'full_name': fullName,
+          'email': email.trim().toLowerCase(),
+          'phone': phone.trim(),
+          'password': password,
+          'role': 'USER',
+        }),
       );
-    }
+      final data = _decode(response);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw SurakshyaApiException(
+          _errorMessage(response, data, fallback: 'Registration failed'),
+          statusCode: response.statusCode,
+        );
+      }
+    });
   }
 
   Future<Map<String, String>> _authHeaders() async {

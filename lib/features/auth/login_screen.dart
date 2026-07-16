@@ -92,6 +92,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         _statusPresenter.showError('Login failed', e.message);
       }
+    } catch (_) {
+      if (mounted) {
+        _statusPresenter.showError(
+          'Connection failed',
+          kApiNetworkErrorMessage,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

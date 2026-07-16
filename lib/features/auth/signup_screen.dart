@@ -140,6 +140,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       if (mounted) {
         _statusPresenter.showError('Sign up failed', e.message);
       }
+    } catch (_) {
+      if (mounted) {
+        _statusPresenter.showError(
+          'Connection failed',
+          kApiNetworkErrorMessage,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
