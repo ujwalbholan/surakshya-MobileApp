@@ -42,7 +42,7 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
     fontWeight: FontWeight.w400,
     letterSpacing: 0.1,
     height: 1.3,
-    color: surakshyaCrimson,
+    color: surakshaAuthText,
     decoration: TextDecoration.none,
   );
 
@@ -51,7 +51,7 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
     fontWeight: FontWeight.w700,
     letterSpacing: 0.1,
     height: 1.3,
-    color: surakshyaCrimson,
+    color: surakshaAuthText,
     decoration: TextDecoration.none,
   );
 
@@ -156,7 +156,8 @@ class _AuthRegisterPromptState extends State<AuthRegisterPrompt>
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(kRegisterPromptPrefix, style: _prefixStyle),
                 Column(
