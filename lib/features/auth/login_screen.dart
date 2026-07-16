@@ -7,11 +7,11 @@ import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
-import 'package:suraksha/features/auth/widgets/auth_field_decoration.dart';
 import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
 import 'package:suraksha/features/auth/widgets/auth_reveal_transition.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_overlay.dart';
 import 'package:suraksha/features/auth/widgets/auth_ticket_status_presenter.dart';
+import 'package:suraksha/features/auth/widgets/auth_underline_field_style.dart';
 import 'package:suraksha/services/surakshya_api_service.dart';
 import 'package:suraksha/router/app_routes.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
@@ -174,25 +174,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(CopyConstants.loginSubtitle,
                     style: SurakshaTypography.monoLabel),
                 const SizedBox(height: S.xl2),
+                const AuthFieldLabel('EMAIL'),
+                const SizedBox(height: kFieldLabelGap),
                 SurakshaEmailInput(
                   localPartController: _emailLocalController,
                   initialDomain: _emailDomain,
                   textInputAction: TextInputAction.next,
+                  style: SurakshaEmailInputStyle.underline,
                   onDomainChanged: (domain) =>
                       setState(() => _emailDomain = domain),
                 ),
                 const SizedBox(height: S.lg),
+                const AuthFieldLabel('PASSWORD'),
+                const SizedBox(height: kFieldLabelGap),
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: surakshaAuthText),
-                  decoration: authFieldDecoration(
-                    labelText: 'PASSWORD',
+                  cursorColor: kFieldUnderlineFocused,
+                  decoration: authUnderlineFieldDecoration(
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
+                        color: surakshaMuted,
                       ),
                       onPressed: () => setState(
                         () => _obscurePassword = !_obscurePassword,
@@ -212,6 +218,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: authFooterLinkTopGap),
                 AuthFooterLink(
                   label: 'Create account',
+                  revealUnderlineOnMount: true,
                   onPressed: () => context.go(AppRoutes.signup),
                 ),
                 AuthFooterLink(

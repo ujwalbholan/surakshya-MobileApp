@@ -4,8 +4,18 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:suraksha/features/auth/widgets/auth_underline_field_style.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_spacing.dart';
+
+/// Visual chrome for [SurakshaEmailInput].
+enum SurakshaEmailInputStyle {
+  /// Filled rounded card (default — used on Signup and elsewhere).
+  filled,
+
+  /// Hairline underline only (opt-in — Sign In screen).
+  underline,
+}
 
 /// Maps UI suffix labels to full email provider domains.
 class EmailDomains {
@@ -45,6 +55,7 @@ class SurakshaEmailInput extends StatefulWidget {
     this.onEmailChanged,
     this.onDomainChanged,
     this.enabled = true,
+    this.style = SurakshaEmailInputStyle.filled,
   });
 
   final TextEditingController localPartController;
@@ -55,6 +66,9 @@ class SurakshaEmailInput extends StatefulWidget {
   final ValueChanged<String>? onEmailChanged;
   final ValueChanged<String>? onDomainChanged;
   final bool enabled;
+
+  /// Defaults to [SurakshaEmailInputStyle.filled] so Signup is unchanged.
+  final SurakshaEmailInputStyle style;
 
   @override
   State<SurakshaEmailInput> createState() => SurakshaEmailInputState();
@@ -235,16 +249,38 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = _isFocused ? surakshaAuthFocus : surakshaBorder;
-    final shadows = _isFocused
-        ? [
-            BoxShadow(
-              color: surakshaAuthFocus.withValues(alpha: 0.2),
-              spreadRadius: 3,
+    final isUnderline = widget.style == SurakshaEmailInputStyle.underline;
+    final borderColor = isUnderline
+        ? (_isFocused ? kFieldUnderlineFocused : kFieldUnderlineIdle)
+        : (_isFocused ? surakshaAuthFocus : surakshaBorder);
+    final shadows = isUnderline
+        ? const <BoxShadow>[]
+        : _isFocused
+            ? [
+                BoxShadow(
+                  color: surakshaAuthFocus.withValues(alpha: 0.2),
+                  spreadRadius: 3,
+                ),
+                _baseShadow,
+              ]
+            : [_baseShadow];
+
+    final decoration = isUnderline
+        ? BoxDecoration(
+            color: Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: borderColor,
+                width: kFieldUnderlineWidth,
+              ),
             ),
-            _baseShadow,
-          ]
-        : [_baseShadow];
+          )
+        : BoxDecoration(
+            color: surakshaCard,
+            borderRadius: BorderRadius.circular(S.radius),
+            border: Border.all(color: borderColor),
+            boxShadow: shadows,
+          );
 
     return OverlayPortal(
       controller: _overlayController,
@@ -256,14 +292,12 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
           curve: Curves.easeOut,
           width: double.infinity,
           constraints: const BoxConstraints(minHeight: _minHeight),
-          decoration: BoxDecoration(
-            color: surakshaCard,
-            borderRadius: BorderRadius.circular(S.radius),
-            border: Border.all(color: borderColor),
-            boxShadow: shadows,
-          ),
+          decoration: decoration,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: isUnderline ? 0 : 12,
+              vertical: 8,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -275,10 +309,14 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
                     textInputAction: widget.textInputAction,
                     onSubmitted: widget.onSubmitted,
                     onChanged: (_) => _notifyEmailChanged(),
-                    cursorColor: surakshaAuthFocus,
+                    cursorColor: isUnderline
+                        ? kFieldUnderlineFocused
+                        : surakshaAuthFocus,
                     style: const TextStyle(color: surakshaAuthText),
                     decoration: InputDecoration(
-                      labelText: widget.placeholder,
+                      // Label is rendered above the field on Sign In; keep
+                      // internal label only for the filled (Signup) chrome.
+                      labelText: isUnderline ? null : widget.placeholder,
                       floatingLabelBehavior: FloatingLabelBehavior.never,
                       filled: false,
                       border: InputBorder.none,
@@ -293,7 +331,7 @@ class SurakshaEmailInputState extends State<SurakshaEmailInput> {
                   width: 1,
                   height: 18,
                   margin: const EdgeInsets.only(left: 6, right: 6),
-                  color: surakshaBorder,
+                  color: isUnderline ? kFieldUnderlineIdle : surakshaBorder,
                 ),
                 CompositedTransformTarget(
                   link: _layerLink,
