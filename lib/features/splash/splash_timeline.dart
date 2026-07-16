@@ -86,10 +86,7 @@ class SplashPhases {
   double get bodyCopy =>
       SplashTimeline.curved(t, 2000, 2500, Curves.easeOut);
 
-  double get stats =>
-      SplashTimeline.curved(t, 2400, 3000, Curves.easeOut);
-
-  /// Fades in once hero + copy intro are on screen (after stats land).
+  /// Fades in once hero + copy intro are on screen.
   double get skipButton => SplashTimeline.curved(
         t,
         SplashTimeline.skipRevealStartMs,

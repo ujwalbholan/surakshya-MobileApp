@@ -40,14 +40,12 @@ class _PortraitBrand extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     return Padding(
-      padding: EdgeInsets.fromLTRB(28, 0, 28, padding.bottom + 32),
+      padding: EdgeInsets.fromLTRB(28, 0, 28, padding.bottom + 108),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           _StaggeredCopy(phases: phases, disableAnimations: disableAnimations),
-          const SizedBox(height: 28),
-          _StatsRow(phases: phases, disableAnimations: disableAnimations),
         ],
       ),
     );
@@ -73,8 +71,6 @@ class _LandscapeBrand extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _StaggeredCopy(phases: phases, disableAnimations: disableAnimations),
-          const SizedBox(height: 32),
-          _StatsRow(phases: phases, disableAnimations: disableAnimations),
         ],
       ),
     );
@@ -159,62 +155,6 @@ class _StaggeredCopy extends StatelessWidget {
       ],
     );
   }
-}
-
-class _StatsRow extends StatelessWidget {
-  const _StatsRow({
-    required this.phases,
-    required this.disableAnimations,
-  });
-
-  final SplashPhases phases;
-  final bool disableAnimations;
-
-  @override
-  Widget build(BuildContext context) {
-    final base = disableAnimations ? 1.0 : phases.stats;
-    return Row(
-      children: [
-        for (var i = 0; i < SplashContent.stats.length; i++) ...[
-          if (i > 0) const SizedBox(width: 24),
-          _FadeSlide(
-            progress: (base - i * 0.08).clamp(0.0, 1.0),
-            offsetY: 8,
-            child: _StatItem(stat: SplashContent.stats[i]),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({required this.stat});
-
-  final SplashStat stat;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            stat.value,
-            style: GoogleFonts.bebasNeue(
-              fontSize: 28,
-              color: surakshaForeground,
-              height: 1,
-            ),
-          ),
-          Text(
-            stat.label,
-            style: GoogleFonts.dmMono(
-              fontSize: 9,
-              letterSpacing: 1.2,
-              color: const Color(0xFF555555),
-            ),
-          ),
-        ],
-      );
 }
 
 class _FadeSlide extends StatelessWidget {

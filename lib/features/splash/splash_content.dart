@@ -1,6 +1,6 @@
 library splash_content;
 
-/// Hero copy and stats — parity with web HeroSection, mobile-appropriate hints.
+/// Hero copy for splash screen 2.
 class SplashContent {
   SplashContent._();
 
@@ -11,18 +11,5 @@ class SplashContent {
       'Precision-engineered safety hardware. Real-time location sharing, '
       'instant SOS, and family peace of mind — always within reach.';
 
-  static const stats = [
-    SplashStat(value: '0.8s', label: 'SOS response'),
-    SplashStat(value: '14d', label: 'Battery life'),
-    SplashStat(value: 'IP68', label: 'Waterproof'),
-  ];
-
   static const statusHint = 'Initializing secure session…';
-}
-
-class SplashStat {
-  const SplashStat({required this.value, required this.label});
-
-  final String value;
-  final String label;
 }
