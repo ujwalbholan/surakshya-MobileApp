@@ -26,6 +26,7 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   static const kRevealDuration = Duration(milliseconds: 2500);
   static const kButtonDelay = Duration(milliseconds: 350);
   static const kButtonFadeDuration = Duration(milliseconds: 500);
+  static const kCounterMax = 100;
   static const kRevealCurve = Curves.easeInOut;
   static const kButtonFadeCurve = Curves.easeIn;
 
@@ -33,6 +34,8 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
   static const kWordmarkSizePhone = 52.0;
   static const kWordmarkSizeTablet = 72.0;
   static const kNarrowWidth = 360.0;
+  static const kCounterFontSize = 13.0;
+  static const kCounterInset = 24.0;
   static const kButtonRadius = 24.0;
   static const kButtonHorizontalPadding = 36.0;
   static const kButtonVerticalPadding = 14.0;
@@ -156,52 +159,79 @@ class _SurakshyaRevealSplashScreenState extends State<SurakshyaRevealSplashScree
           child: ColoredBox(
             color: surakshaBlack,
             child: SafeArea(
-              child: Center(
-                child: AnimatedBuilder(
-                  animation: Listenable.merge([
-                    _revealController,
-                    _buttonController,
-                  ]),
-                  builder: (context, _) {
-                    final color = _textColor.value ?? kSplashTextBright;
-                    final wordmarkSize = _wordmarkSize(context);
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Semantics(
-                          label: CopyConstants.appName,
+              child: Stack(
+                children: [
+                  Center(
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([
+                        _revealController,
+                        _buttonController,
+                      ]),
+                      builder: (context, _) {
+                        final color = _textColor.value ?? kSplashTextBright;
+                        final wordmarkSize = _wordmarkSize(context);
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Semantics(
+                              label: CopyConstants.appName,
+                              child: Text(
+                                CopyConstants.appName,
+                                textAlign: TextAlign.center,
+                                style:
+                                    SurakshaTypography.playfairBrand.copyWith(
+                                  fontSize: wordmarkSize,
+                                  color: color,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: kAccentUnderlineGap),
+                            Opacity(
+                              opacity: _revealCurved.value,
+                              child: const SizedBox(
+                                width: kAccentUnderlineWidth,
+                                height: kAccentUnderlineHeight,
+                                child: ColoredBox(color: surakshaCrimson),
+                              ),
+                            ),
+                            const SizedBox(height: kWordmarkButtonGap),
+                            FadeTransition(
+                              opacity: _buttonCurved,
+                              child: IgnorePointer(
+                                ignoring: !_sequenceFullyComplete,
+                                child: _WelcomePillButton(
+                                  onPressed: _onWelcomeTap,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    right: kCounterInset,
+                    bottom: kCounterInset,
+                    child: AnimatedBuilder(
+                      animation: _revealCurved,
+                      builder: (context, _) {
+                        final count =
+                            (_revealCurved.value * kCounterMax).round();
+                        return Semantics(
+                          label: 'Loading progress',
+                          value: '$count${CopyConstants.splashPercent}',
                           child: Text(
-                            CopyConstants.appName,
-                            textAlign: TextAlign.center,
-                            style: SurakshaTypography.playfairBrand.copyWith(
-                              fontSize: wordmarkSize,
-                              color: color,
+                            '$count${CopyConstants.splashPercent}',
+                            style: SurakshaTypography.dmMonoBase.copyWith(
+                              fontSize: kCounterFontSize,
+                              color: kSplashCounterGray,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: kAccentUnderlineGap),
-                        Opacity(
-                          opacity: _revealCurved.value,
-                          child: const SizedBox(
-                            width: kAccentUnderlineWidth,
-                            height: kAccentUnderlineHeight,
-                            child: ColoredBox(color: surakshaCrimson),
-                          ),
-                        ),
-                        const SizedBox(height: kWordmarkButtonGap),
-                        FadeTransition(
-                          opacity: _buttonCurved,
-                          child: IgnorePointer(
-                            ignoring: !_sequenceFullyComplete,
-                            child: _WelcomePillButton(
-                              onPressed: _onWelcomeTap,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
