@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
+import 'package:suraksha/features/auth/widgets/auth_accent_title.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
 import 'package:suraksha/features/auth/widgets/auth_register_prompt.dart';
@@ -173,8 +174,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(CopyConstants.signupTitle,
-                                  style: SurakshaTypography.playfairDisplay),
+                              const AuthAccentTitle(
+                                leading: 'Register ',
+                                accent: 'Account',
+                              ),
                               const SizedBox(height: S.sm),
                               Text(CopyConstants.signupSubtitle,
                                   style: SurakshaTypography.monoLabel),

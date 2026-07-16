@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:suraksha/core/constants/copy_constants.dart';
 import 'package:suraksha/core/utils/email_utils.dart';
 import 'package:suraksha/features/auth/auth_provider.dart';
+import 'package:suraksha/features/auth/widgets/auth_accent_title.dart';
 import 'package:suraksha/features/auth/widgets/auth_cinematic_background.dart';
 import 'package:suraksha/features/auth/widgets/auth_footer_link.dart';
 import 'package:suraksha/features/auth/widgets/auth_register_prompt.dart';
@@ -169,8 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(CopyConstants.loginTitle,
-                    style: SurakshaTypography.playfairDisplay),
+                const AuthAccentTitle(leading: 'Log ', accent: 'In'),
                 const SizedBox(height: S.sm),
                 Text(CopyConstants.loginSubtitle,
                     style: SurakshaTypography.monoLabel),
