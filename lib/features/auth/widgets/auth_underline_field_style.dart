@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:suraksha/theme/suraksha_colors.dart';
 import 'package:suraksha/theme/suraksha_typography.dart';
 
-/// Idle hairline opacity applied to [surakshaBorder] (mid of 30–40%).
-const double kFieldUnderlineIdleOpacity = 0.35;
+/// Idle hairline opacity applied to light white (visible on dark auth bg).
+const double kFieldUnderlineIdleOpacity = 0.4;
 
-/// Idle hairline — [surakshaBorder] at [kFieldUnderlineIdleOpacity].
+/// Idle hairline — light white at [kFieldUnderlineIdleOpacity].
 Color get kFieldUnderlineIdle =>
-    surakshaBorder.withValues(alpha: kFieldUnderlineIdleOpacity);
+    surakshaAuthText.withValues(alpha: kFieldUnderlineIdleOpacity);
 
 /// Focused hairline — reuses [surakshyaCrimson].
 const Color kFieldUnderlineFocused = surakshyaCrimson;
