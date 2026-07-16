@@ -107,17 +107,43 @@ class _TrackingTabState extends ConsumerState<TrackingTab> {
                     )
                   else
                     StaggerListAnimator(
-                      itemCount: family.length,
-                      itemBuilder: (context, i, anim) => FadeTransition(
-                        opacity: anim,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.06),
-                            end: Offset.zero,
-                          ).animate(anim),
-                          child: FamilyMemberTile(member: family[i]),
-                        ),
-                      ),
+                      itemCount: (family.length + 1) ~/ 2,
+                      itemBuilder: (context, rowIndex, anim) {
+                        final leftIndex = rowIndex * 2;
+                        final rightIndex = leftIndex + 1;
+                        return FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.06),
+                              end: Offset.zero,
+                            ).animate(anim),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: kGuardianGridGap,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: FamilyMemberTile(
+                                      member: family[leftIndex],
+                                    ),
+                                  ),
+                                  const SizedBox(width: kGuardianGridGap),
+                                  Expanded(
+                                    child: rightIndex < family.length
+                                        ? FamilyMemberTile(
+                                            member: family[rightIndex],
+                                          )
+                                        : const SizedBox.shrink(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                 ],
               ),
