@@ -33,9 +33,16 @@ class _OriginButtonState extends State<OriginButton>
   static const _height = 48.0;
   static const _radius = 12.0;
   static const _horizontalPadding = 32.0;
-  static const _tapScale = 0.985;
-  static const _fillDuration = Duration(milliseconds: 500);
-  static const _tapDuration = Duration(milliseconds: 150);
+
+  /// Subtle press depth — enough to feel, not enough to jump.
+  static const _tapScale = 0.978;
+  static const _tapDuration = Duration(milliseconds: 200);
+  static const _tapCurve = Curves.easeOutCubic;
+  static const _tapReverseCurve = Curves.easeOutCubic;
+
+  static const _hoverFillDuration = Duration(milliseconds: 340);
+  static const _pressFillDuration = Duration(milliseconds: 280);
+  static const _releaseFillDuration = Duration(milliseconds: 420);
 
   static final TextStyle _labelStyle = GoogleFonts.inter(
     fontSize: 15,
@@ -53,24 +60,27 @@ class _OriginButtonState extends State<OriginButton>
   bool _isPressed = false;
   bool _hasFocus = false;
 
+  /// True while a successful tap is completing fill → callback.
+  bool _activating = false;
+
   bool get _isInactive => !widget.enabled || widget.loading;
 
   bool get _showFill =>
-      !_isInactive && (_isHovered || _isPressed || _hasFocus);
+      !_isInactive &&
+      (_activating || _isHovered || _isPressed || _hasFocus);
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-    _focusNode.addListener(_onFocusChange);
+    _focusNode = FocusNode()..addListener(_onFocusChange);
     _fillController = AnimationController(
       vsync: this,
-      duration: _fillDuration,
+      duration: _hoverFillDuration,
     );
     _fillAnimation = CurvedAnimation(
       parent: _fillController,
       curve: SurakshaAnimations.easeOutExpo,
-      reverseCurve: SurakshaAnimations.easeOutExpo.flipped,
+      reverseCurve: SurakshaAnimations.easeInOutSine,
     );
   }
 
@@ -78,8 +88,10 @@ class _OriginButtonState extends State<OriginButton>
   void didUpdateWidget(covariant OriginButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (_isInactive) {
+      _activating = false;
       if (_isPressed) _setPressed(false);
       if (_isHovered) _setHovered(false);
+      _fillController.reverse();
     } else {
       _syncFillAnimation();
     }
@@ -98,52 +110,79 @@ class _OriginButtonState extends State<OriginButton>
     final focused = _focusNode.hasFocus;
     if (focused == _hasFocus) return;
     setState(() => _hasFocus = focused);
-    if (focused) {
-      _setOriginToCenter();
-    }
+    if (focused) _lockOriginToCenter();
     _syncFillAnimation();
   }
 
   void _syncFillAnimation() {
+    if (_activating) return;
+
     if (_showFill) {
-      _fillController.duration = _isHovered && !_isPressed
-          ? const Duration(milliseconds: 280)
-          : _fillDuration;
-      _fillController.forward();
+      _fillController
+        ..duration = _isPressed ? _pressFillDuration : _hoverFillDuration
+        ..forward();
     } else {
-      _fillController.duration = _fillDuration;
-      _fillController.reverse();
+      _fillController
+        ..duration = _releaseFillDuration
+        ..reverse();
     }
   }
 
-  void _setOrigin(double x, double y) {
+  void _lockOrigin(double x, double y) {
     setState(() {
       _originX = x;
       _originY = y;
     });
   }
 
-  void _setOriginToCenter() {
+  void _lockOriginToCenter() {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.hasSize) return;
     final size = renderBox.size;
-    _setOrigin(size.width / 2, size.height / 2);
+    _lockOrigin(size.width / 2, size.height / 2);
   }
 
   void _setHovered(bool value) {
-    if (_isHovered == value) return;
+    if (_isHovered == value || _activating) return;
     setState(() => _isHovered = value);
     _syncFillAnimation();
   }
 
   void _setPressed(bool value) {
-    if (_isPressed == value) return;
+    if (_isPressed == value || _activating) return;
     setState(() => _isPressed = value);
     _syncFillAnimation();
   }
 
-  void _handleActivate() {
-    if (_isInactive) return;
+  Future<void> _activateFromPointer() async {
+    if (_isInactive || _activating) return;
+
+    setState(() {
+      _activating = true;
+      _isPressed = false;
+    });
+
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (reduceMotion) {
+      _fillController.value = 1.0;
+    } else {
+      _fillController.duration = _pressFillDuration;
+      await _fillController.forward();
+    }
+
+    if (!mounted) return;
+    HapticFeedback.lightImpact();
+    widget.onPressed();
+
+    // Keep fill held; parent usually navigates. If still mounted, ease out.
+    if (!mounted) return;
+    setState(() => _activating = false);
+    _syncFillAnimation();
+  }
+
+  void _handleKeyboardActivate() {
+    if (_isInactive || _activating) return;
+    HapticFeedback.lightImpact();
     widget.onPressed();
   }
 
@@ -157,14 +196,14 @@ class _OriginButtonState extends State<OriginButton>
     if (!isActivationKey) return KeyEventResult.ignored;
 
     if (event is KeyDownEvent) {
-      _setOriginToCenter();
+      _lockOriginToCenter();
       _setPressed(true);
       return KeyEventResult.handled;
     }
 
     if (event is KeyUpEvent && _isPressed) {
       _setPressed(false);
-      _handleActivate();
+      _handleKeyboardActivate();
       return KeyEventResult.handled;
     }
 
@@ -192,6 +231,9 @@ class _OriginButtonState extends State<OriginButton>
           )
         : widget.child;
 
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final scaleDuration = reduceMotion ? Duration.zero : _tapDuration;
+
     final button = Opacity(
       opacity: widget.enabled ? 1 : 0.5,
       child: IgnorePointer(
@@ -203,57 +245,48 @@ class _OriginButtonState extends State<OriginButton>
             cursor: SystemMouseCursors.click,
             hitTestBehavior: HitTestBehavior.opaque,
             onEnter: (_) {
+              if (_activating) return;
+              _lockOriginToCenter();
               _setHovered(true);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted && _isHovered && !_isPressed) {
-                  _setOriginToCenter();
-                }
-              });
-            },
-            onHover: (event) {
-              if (_isHovered) {
-                _setOrigin(event.localPosition.dx, event.localPosition.dy);
-              }
             },
             onExit: (_) {
+              if (_activating) return;
               _setHovered(false);
               _setPressed(false);
             },
             child: Listener(
               onPointerDown: (event) {
-                if (event.buttons != 1) return;
-                _setOrigin(event.localPosition.dx, event.localPosition.dy);
+                if (event.buttons != 1 || _activating) return;
+                // Lock origin once at press — do not chase the finger.
+                _lockOrigin(event.localPosition.dx, event.localPosition.dy);
                 _setPressed(true);
               },
-              onPointerMove: (event) {
-                if (_isPressed || _isHovered) {
-                  _setOrigin(event.localPosition.dx, event.localPosition.dy);
-                }
-              },
               onPointerUp: (event) {
+                if (_activating) return;
                 final wasPressed = _isPressed;
                 _setPressed(false);
-                if (wasPressed) {
-                  final renderBox = context.findRenderObject() as RenderBox?;
-                  if (renderBox != null) {
-                    final local = renderBox.globalToLocal(event.position);
-                    final bounds = Offset.zero & renderBox.size;
-                    if (bounds.contains(local)) {
-                      _handleActivate();
-                    }
-                  }
+                if (!wasPressed) return;
+
+                final renderBox = context.findRenderObject() as RenderBox?;
+                if (renderBox == null || !renderBox.hasSize) return;
+                final local = renderBox.globalToLocal(event.position);
+                if ((Offset.zero & renderBox.size).contains(local)) {
+                  _activateFromPointer();
                 }
               },
-              onPointerCancel: (_) => _setPressed(false),
+              onPointerCancel: (_) {
+                if (_activating) return;
+                _setPressed(false);
+              },
               child: AnimatedScale(
                 scale: _isPressed && !_isInactive ? _tapScale : 1,
-                duration: _tapDuration,
-                curve: Curves.easeOut,
+                duration: scaleDuration,
+                curve: _isPressed ? _tapCurve : _tapReverseCurve,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final width = constraints.maxWidth;
                     final height = _height;
-                    final diameter = _getCoverDiameter(
+                    final diameter = _coverDiameter(
                       width,
                       height,
                       _originX,
@@ -271,6 +304,16 @@ class _OriginButtonState extends State<OriginButton>
                             surakshaAuthRight,
                             fillProgress,
                           )!;
+                          final borderColor = Color.lerp(
+                            surakshaBorder,
+                            surakshaAuthText.withValues(alpha: 0.4),
+                            Curves.easeOut.transform(
+                              (_isHovered || _isPressed || _activating) &&
+                                      !_isInactive
+                                  ? math.max(fillProgress, 0.35)
+                                  : fillProgress * 0.5,
+                            ),
+                          )!;
 
                           return Container(
                             height: height,
@@ -278,9 +321,7 @@ class _OriginButtonState extends State<OriginButton>
                             decoration: BoxDecoration(
                               color: surakshaCard,
                               border: Border.all(
-                                color: _isHovered && !_isPressed && !_isInactive
-                                    ? surakshaAuthText.withValues(alpha: 0.35)
-                                    : surakshaBorder,
+                                color: borderColor,
                                 width: 0.5,
                               ),
                               borderRadius: BorderRadius.circular(_radius),
@@ -293,6 +334,8 @@ class _OriginButtonState extends State<OriginButton>
                                   top: _originY - diameter / 2,
                                   child: Transform.scale(
                                     scale: fillProgress,
+                                    alignment: Alignment.center,
+                                    filterQuality: FilterQuality.medium,
                                     child: Container(
                                       width: diameter,
                                       height: diameter,
@@ -309,8 +352,9 @@ class _OriginButtonState extends State<OriginButton>
                                   ),
                                   child: Center(
                                     child: DefaultTextStyle(
-                                      style:
-                                          _labelStyle.copyWith(color: textColor),
+                                      style: _labelStyle.copyWith(
+                                        color: textColor,
+                                      ),
                                       child: IconTheme(
                                         data: IconThemeData(
                                           color: textColor,
@@ -345,7 +389,7 @@ class _OriginButtonState extends State<OriginButton>
   }
 }
 
-double _getCoverDiameter(double width, double height, double x, double y) {
+double _coverDiameter(double width, double height, double x, double y) {
   final distances = [
     math.sqrt(x * x + y * y),
     math.sqrt((width - x) * (width - x) + y * y),
