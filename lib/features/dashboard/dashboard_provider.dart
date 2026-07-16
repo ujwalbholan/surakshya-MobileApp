@@ -98,45 +98,6 @@ class DashboardStateData {
       );
 }
 
-const kMockContacts = [
-  ContactModel(
-    id: 'me',
-    name: 'Priya Sharma',
-    phone: '+91 98765 43210',
-    role: 'Self',
-    avatarPath: 'assets/images/avatars/avatar_me.png',
-    isEmergency: true,
-    initials: 'PS',
-  ),
-  ContactModel(
-    id: 'father',
-    name: 'Raj Sharma',
-    phone: '+91 98765 43211',
-    role: 'Father',
-    avatarPath: 'assets/images/avatars/avatar_david.png',
-    isEmergency: true,
-    initials: 'R',
-  ),
-  ContactModel(
-    id: 'mother',
-    name: 'Sita Sharma',
-    phone: '+91 98765 43212',
-    role: 'Mother',
-    avatarPath: 'assets/images/avatars/avatar_sister.png',
-    isEmergency: true,
-    initials: 'S',
-  ),
-  ContactModel(
-    id: 'brother',
-    name: 'Arjun Sharma',
-    phone: '+91 98765 43213',
-    role: 'Brother',
-    avatarPath: 'assets/images/avatars/avatar_husband.png',
-    isEmergency: true,
-    initials: 'A',
-  ),
-];
-
 final kMockPlaces = <PlaceModel>[];
 
 class DashboardNotifier extends StateNotifier<DashboardStateData> {

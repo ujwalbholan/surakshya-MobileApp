@@ -6,7 +6,7 @@ Women's safety IoT wearable companion app (hybrid build: yellow tracking dashboa
 
 ```bash
 export PATH="$HOME/flutter-sdk/bin:$PATH"   # or your Flutter SDK path
-cd suraksha-app
+cd surakshya-app
 flutter pub get
 flutter run
 ```
@@ -16,7 +16,7 @@ flutter run
 `flutter run` can fail with `Can't find service: package` if the emulator is still booting or adb is stale. Use the helper script:
 
 ```bash
-cd suraksha-app
+cd surakshya-app
 ./scripts/run_android.sh
 # or a specific device:
 ./scripts/run_android.sh emulator-5554
