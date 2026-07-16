@@ -221,10 +221,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   revealUnderlineOnMount: true,
                   onPressed: () => context.go(AppRoutes.signup),
                 ),
-                AuthFooterLink(
-                  label: 'Guardian invite setup',
-                  onPressed: () => context.go(AppRoutes.guardianSetup),
-                ),
               ],
             ),
           ),
