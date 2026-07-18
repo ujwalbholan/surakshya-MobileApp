@@ -31,6 +31,9 @@ const Duration kApiRequestTimeout = Duration(seconds: 15);
 const String kApiNetworkErrorMessage =
     'Unable to reach the server. Check your connection and try again.';
 
+const String kSessionExpiredMessage =
+    'Your session has expired. Please sign in again.';
+
 class AuthSession {
   const AuthSession({
     required this.user,
@@ -70,6 +73,12 @@ class SurakshyaApiService {
 
   final http.Client _client;
   final TokenStorage _tokenStorage;
+
+  /// Set by the auth layer so an expired session reuses the existing
+  /// logout flow instead of the service owning navigation.
+  Future<void> Function()? onSessionExpired;
+
+  Future<bool>? _refreshInFlight;
 
   String get _base => AppConstants.surakshyaBaseUrl;
 
@@ -261,14 +270,85 @@ class SurakshyaApiService {
     };
   }
 
+  /// Sends an authenticated request; on 401 refreshes tokens once and
+  /// retries once. A rejected refresh (or a second 401) ends the session.
+  Future<http.Response> _authorizedSend(
+    Future<http.Response> Function(Map<String, String> headers) send,
+  ) async {
+    final headers = await _authHeaders();
+    final response = await send(headers);
+    if (response.statusCode != 401) return response;
+
+    final refreshed = await _refreshTokens();
+    if (!refreshed) {
+      await _endSession();
+      throw SurakshyaApiException(kSessionExpiredMessage, statusCode: 401);
+    }
+    final retryHeaders = await _authHeaders();
+    final retryResponse = await send(retryHeaders);
+    if (retryResponse.statusCode == 401) {
+      await _endSession();
+      throw SurakshyaApiException(kSessionExpiredMessage, statusCode: 401);
+    }
+    return retryResponse;
+  }
+
+  /// Single-flight token refresh. Returns false when the refresh token is
+  /// missing or rejected (session is over). Network problems surface as
+  /// [SurakshyaApiException] so a flaky connection never signs the user out.
+  Future<bool> _refreshTokens() {
+    return _refreshInFlight ??= _doRefreshTokens().whenComplete(() {
+      _refreshInFlight = null;
+    });
+  }
+
+  Future<bool> _doRefreshTokens() async {
+    final refreshToken = await _tokenStorage.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) return false;
+
+    final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse('$_base${AppConstants.authRefreshEndpoint}'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'refreshToken': refreshToken}),
+          )
+          .timeout(kApiRequestTimeout);
+    } catch (_) {
+      throw SurakshyaApiException(kApiNetworkErrorMessage);
+    }
+
+    // A 401 from the refresh call itself must not trigger another refresh.
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      return false;
+    }
+    final data = _decode(response);
+    final accessToken = data['accessToken'] as String? ?? '';
+    final newRefreshToken = data['refreshToken'] as String? ?? '';
+    if (accessToken.isEmpty) return false;
+    await _tokenStorage.saveTokens(
+      accessToken: accessToken,
+      refreshToken: newRefreshToken.isEmpty ? refreshToken : newRefreshToken,
+    );
+    return true;
+  }
+
+  Future<void> _endSession() async {
+    await _tokenStorage.clearTokens();
+    final handler = onSessionExpired;
+    if (handler != null) await handler();
+  }
+
   Future<List<LinkedGuardian>> fetchMyGuardians({
     int page = 1,
     int limit = 20,
   }) async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/guardians?page=$page&limit=$limit'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/guardians?page=$page&limit=$limit'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200) {
@@ -284,10 +364,11 @@ class SurakshyaApiService {
   }
 
   Future<List<ChildPendingRequest>> fetchChildPendingRequests() async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/guardians/requests'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/guardians/requests'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200) {
@@ -307,15 +388,16 @@ class SurakshyaApiService {
     required String email,
     required String phone,
   }) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/guardians'),
-      headers: headers,
-      body: jsonEncode({
-        'full_name': fullName,
-        'email': email.trim().toLowerCase(),
-        'phone': phone.trim(),
-      }),
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/guardians'),
+        headers: headers,
+        body: jsonEncode({
+          'full_name': fullName,
+          'email': email.trim().toLowerCase(),
+          'phone': phone.trim(),
+        }),
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -332,11 +414,12 @@ class SurakshyaApiService {
     required String guardianId,
     required bool isEmergencyContact,
   }) async {
-    final headers = await _authHeaders();
-    final response = await _client.patch(
-      Uri.parse('$_base/guardians/$guardianId/emergency-contact'),
-      headers: headers,
-      body: jsonEncode({'isEmergencyContact': isEmergencyContact}),
+    final response = await _authorizedSend(
+      (headers) => _client.patch(
+        Uri.parse('$_base/guardians/$guardianId/emergency-contact'),
+        headers: headers,
+        body: jsonEncode({'isEmergencyContact': isEmergencyContact}),
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -353,11 +436,12 @@ class SurakshyaApiService {
     required String guardianId,
     required String phone,
   }) async {
-    final headers = await _authHeaders();
-    final response = await _client.patch(
-      Uri.parse('$_base/guardians/$guardianId/phone'),
-      headers: headers,
-      body: jsonEncode({'phone': phone.trim()}),
+    final response = await _authorizedSend(
+      (headers) => _client.patch(
+        Uri.parse('$_base/guardians/$guardianId/phone'),
+        headers: headers,
+        body: jsonEncode({'phone': phone.trim()}),
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -370,10 +454,11 @@ class SurakshyaApiService {
   }
 
   Future<String> acceptChildRequest(String requestId) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/guardians/requests/$requestId/accept'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/guardians/requests/$requestId/accept'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -386,10 +471,11 @@ class SurakshyaApiService {
   }
 
   Future<String> rejectChildRequest(String requestId) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/guardians/requests/$requestId/reject'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/guardians/requests/$requestId/reject'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -405,10 +491,11 @@ class SurakshyaApiService {
     int page = 1,
     int limit = 20,
   }) async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/guardian/me?page=$page&limit=$limit'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/guardian/me?page=$page&limit=$limit'),
+        headers: headers,
+      ),
     );
     if (response.statusCode == 404) {
       return [];
@@ -427,10 +514,11 @@ class SurakshyaApiService {
   }
 
   Future<List<GuardianPendingRequest>> fetchGuardianPendingRequests() async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/guardian/requests'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/guardian/requests'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200) {
@@ -446,10 +534,11 @@ class SurakshyaApiService {
   }
 
   Future<String> acceptGuardianRequest(String requestId) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/guardian/requests/$requestId/accept'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/guardian/requests/$requestId/accept'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -462,10 +551,11 @@ class SurakshyaApiService {
   }
 
   Future<String> rejectGuardianRequest(String requestId) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/guardian/requests/$requestId/reject'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/guardian/requests/$requestId/reject'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -478,11 +568,12 @@ class SurakshyaApiService {
   }
 
   Future<String> inviteWard({required String childEmail}) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/guardian/add-ward'),
-      headers: headers,
-      body: jsonEncode({'child_email': childEmail.trim().toLowerCase()}),
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/guardian/add-ward'),
+        headers: headers,
+        body: jsonEncode({'child_email': childEmail.trim().toLowerCase()}),
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -556,10 +647,11 @@ class SurakshyaApiService {
   }
 
   Future<List<WardSosEvent>> fetchWardSos(String wardId) async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/guardian/wards/$wardId/sos'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/guardian/wards/$wardId/sos'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200) {
@@ -582,7 +674,6 @@ class SurakshyaApiService {
     String source = 'wristband_double_tap',
     String? triggerNotes,
   }) async {
-    final headers = await _authHeaders();
     final body = <String, dynamic>{
       'latitude': latitude,
       'longitude': longitude,
@@ -591,10 +682,12 @@ class SurakshyaApiService {
       if (triggerNotes != null && triggerNotes.isNotEmpty)
         'triggerNotes': triggerNotes,
     };
-    final response = await _client.post(
-      Uri.parse('$_base/sos'),
-      headers: headers,
-      body: jsonEncode(body),
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/sos'),
+        headers: headers,
+        body: jsonEncode(body),
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -612,10 +705,11 @@ class SurakshyaApiService {
 
   /// GET /sos/active — active SOS for the signed-in citizen (band or app).
   Future<ActiveSosSummary?> fetchActiveSos() async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/sos/active'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/sos/active'),
+        headers: headers,
+      ),
     );
     if (response.statusCode == 204 || response.body.trim().isEmpty) {
       return null;
@@ -635,11 +729,12 @@ class SurakshyaApiService {
 
   /// POST /sos/:id/cancel — resolve SOS and tell the wearable to stop.
   Future<void> cancelSos(String sosId) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/sos/$sosId/cancel'),
-      headers: headers,
-      body: jsonEncode({}),
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/sos/$sosId/cancel'),
+        headers: headers,
+        body: jsonEncode({}),
+      ),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
       final data = _decode(response);
@@ -656,14 +751,15 @@ class SurakshyaApiService {
     required double latitude,
     required double longitude,
   }) async {
-    final headers = await _authHeaders();
-    final response = await _client.post(
-      Uri.parse('$_base/sos/$sosId/location'),
-      headers: headers,
-      body: jsonEncode({
-        'latitude': latitude,
-        'longitude': longitude,
-      }),
+    final response = await _authorizedSend(
+      (headers) => _client.post(
+        Uri.parse('$_base/sos/$sosId/location'),
+        headers: headers,
+        body: jsonEncode({
+          'latitude': latitude,
+          'longitude': longitude,
+        }),
+      ),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
       final data = _decode(response);
@@ -676,10 +772,11 @@ class SurakshyaApiService {
 
   /// GET /device/mine — linked wearable online status (MQTT / backend).
   Future<BandDeviceStatus?> fetchMyDeviceStatus() async {
-    final headers = await _authHeaders();
-    final response = await _client.get(
-      Uri.parse('$_base/device/mine'),
-      headers: headers,
+    final response = await _authorizedSend(
+      (headers) => _client.get(
+        Uri.parse('$_base/device/mine'),
+        headers: headers,
+      ),
     );
     final data = _decode(response);
     if (response.statusCode != 200 && response.statusCode != 201) {

@@ -22,7 +22,12 @@ class AuthData {
 }
 
 class AuthNotifier extends StateNotifier<AuthData> {
-  AuthNotifier(this._api, this._tokens) : super(const AuthData(isLoggedIn: false));
+  AuthNotifier(this._api, this._tokens)
+      : super(const AuthData(isLoggedIn: false)) {
+    // Token refresh failure signs the user out through the existing
+    // logout flow; app.dart routes to login on the state change.
+    _api.onSessionExpired = logout;
+  }
 
   final SurakshyaApiService _api;
   final TokenStorage _tokens;

@@ -30,6 +30,7 @@ class AppConstants {
   static const String prefsLoggedIn = 'logged_in';
   static const String prefsMarketingSeen = 'marketing_seen';
   static const String policeSosEndpoint = '/police/sos';
+  static const String authRefreshEndpoint = '/auth/refresh';
 
   /// When true, also fire AMS `sendSosToPoliceDashboard` as non-blocking dual-write.
   static const bool sosDualWriteToAmsEnabled = true;
