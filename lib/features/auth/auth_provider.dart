@@ -127,6 +127,9 @@ class AuthNotifier extends StateNotifier<AuthData> {
   }
 
   Future<void> logout() async {
+    // Best-effort server invalidation first (needs the still-stored token);
+    // local sign-out below completes even if the server call fails.
+    await _api.serverLogout();
     await _api.clearSession();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(AppConstants.prefsLoggedIn, false);

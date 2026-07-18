@@ -224,6 +224,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: authFooterLinkTopGap),
+                AuthFooterLink(
+                  label: 'Forgot password?',
+                  onPressed: () => context.go(AppRoutes.forgotPassword),
+                ),
                 AuthRegisterPrompt(
                   onPressed: () => context.go(AppRoutes.signup),
                 ),

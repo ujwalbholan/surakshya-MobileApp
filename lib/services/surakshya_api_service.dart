@@ -258,6 +258,86 @@ class SurakshyaApiService {
     });
   }
 
+  /// POST /auth/forgot-password — emails a 6-digit reset OTP (2-minute TTL).
+  Future<String> forgotPassword(String email) {
+    return _guardNetwork(() async {
+      final response = await _client.post(
+        Uri.parse('$_base${AppConstants.authForgotPasswordEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email.trim().toLowerCase()}),
+      );
+      final data = _decode(response);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw SurakshyaApiException(
+          _errorMessage(response, data, fallback: 'Failed to send reset code'),
+          statusCode: response.statusCode,
+        );
+      }
+      return data['message'] as String? ?? 'OTP sent successfully';
+    });
+  }
+
+  /// POST /auth/verify-reset-otp — exchanges the OTP for a short-lived
+  /// reset token (5-minute TTL) used by [resetPassword].
+  Future<String> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) {
+    return _guardNetwork(() async {
+      final response = await _client.post(
+        Uri.parse('$_base${AppConstants.authVerifyResetOtpEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email.trim().toLowerCase(),
+          'otp': otp.trim(),
+        }),
+      );
+      final data = _decode(response);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw SurakshyaApiException(
+          _errorMessage(response, data, fallback: 'OTP verification failed'),
+          statusCode: response.statusCode,
+        );
+      }
+      final resetToken = data['resetToken'] as String? ?? '';
+      if (resetToken.isEmpty) {
+        throw SurakshyaApiException(
+          'Verification response missing reset token',
+        );
+      }
+      return resetToken;
+    });
+  }
+
+  /// POST /auth/reset-password — sets the new password with the reset token.
+  Future<String> resetPassword({
+    required String email,
+    required String newPassword,
+    required String comparePassword,
+    required String resetToken,
+  }) {
+    return _guardNetwork(() async {
+      final response = await _client.post(
+        Uri.parse('$_base${AppConstants.authResetPasswordEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email.trim().toLowerCase(),
+          'newPassword': newPassword,
+          'comparePassword': comparePassword,
+          'resetToken': resetToken,
+        }),
+      );
+      final data = _decode(response);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw SurakshyaApiException(
+          _errorMessage(response, data, fallback: 'Failed to reset password'),
+          statusCode: response.statusCode,
+        );
+      }
+      return data['message'] as String? ?? 'Password reset successfully';
+    });
+  }
+
   Future<Map<String, String>> _authHeaders() async {
     final token = await _tokenStorage.getAccessToken();
     if (token == null || token.isEmpty) {
@@ -787,6 +867,30 @@ class SurakshyaApiService {
     }
     if (data.isEmpty) return null;
     return BandDeviceStatus.fromJson(data);
+  }
+
+  /// POST /auth/logout — best-effort server session invalidation.
+  ///
+  /// Deliberately bypasses [_authorizedSend]: a 401 here must not trigger a
+  /// token refresh or the session-expired callback (which calls logout and
+  /// would recurse). Failures are swallowed so a dead network or an already
+  /// expired token can never trap the user in a logged-in-looking state.
+  Future<void> serverLogout() async {
+    final token = await _tokenStorage.getAccessToken();
+    if (token == null || token.isEmpty) return;
+    try {
+      await _client
+          .post(
+            Uri.parse('$_base${AppConstants.authLogoutEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(kApiRequestTimeout);
+    } catch (_) {
+      // Intentional: local logout proceeds regardless of the server result.
+    }
   }
 
   Future<void> clearSession() => _tokenStorage.clearTokens();

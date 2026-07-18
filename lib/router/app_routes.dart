@@ -9,6 +9,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String forgotPassword = '/forgot-password';
   static const String tracking = '/tracking';
   static const String parent = '/parent';
   static const String profile = '/profile';

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:suraksha/core/constants/app_constants.dart';
+import 'package:suraksha/features/auth/forgot_password_screen.dart';
 import 'package:suraksha/features/auth/login_screen.dart';
 import 'package:suraksha/features/auth/signup_screen.dart';
 import 'package:suraksha/features/dashboard/dashboard_shell.dart';
@@ -96,6 +97,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.signup,
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           child: const SignupScreen(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          child: const ForgotPasswordScreen(),
           transitionsBuilder: (context, animation, secondary, child) =>
               FadeTransition(opacity: animation, child: child),
         ),

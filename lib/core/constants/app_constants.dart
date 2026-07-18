@@ -31,6 +31,10 @@ class AppConstants {
   static const String prefsMarketingSeen = 'marketing_seen';
   static const String policeSosEndpoint = '/police/sos';
   static const String authRefreshEndpoint = '/auth/refresh';
+  static const String authLogoutEndpoint = '/auth/logout';
+  static const String authForgotPasswordEndpoint = '/auth/forgot-password';
+  static const String authVerifyResetOtpEndpoint = '/auth/verify-reset-otp';
+  static const String authResetPasswordEndpoint = '/auth/reset-password';
 
   /// When true, also fire AMS `sendSosToPoliceDashboard` as non-blocking dual-write.
   static const bool sosDualWriteToAmsEnabled = true;
